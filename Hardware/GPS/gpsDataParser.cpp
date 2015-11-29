@@ -1,6 +1,5 @@
 //
-//  main.cpp
-//  gpsParser
+//  gpsDataParser.cpp
 //
 //  Created by Ali Kürşat Şahin on 29.11.2015.
 //  Copyright © 2015 Ali Kürşat Şahin. All rights reserved.
