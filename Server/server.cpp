@@ -19,6 +19,28 @@ int main()
     socklen_t clientAddressLength;
     struct sockaddr_in clientAddress, serverAddress;
     char line[LINE_ARRAY_SIZE];
+    struct sigaction sa;
+    // Setup the sighub handler
+    sa.sa_handler = &handle_signal;
+
+    // Restart the system call, if at all possible
+    sa.sa_flags = SA_RESTART;
+
+    // Block every signal during the handler
+    sigfillset(&sa.sa_mask);
+
+    // Intercept SIGHUP and SIGINT
+    if (sigaction(SIGHUP, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGHUP"); // Should not happen
+    }
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGINT"); // Should not happen
+    }
+
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGTERM"); // Should not happen
+    }
     
     cout << "Enter port number to listen on (between 1500 and 65000): ";
     cin >> listenPort;
@@ -104,4 +126,23 @@ int main()
             memset(line, 0x0, LINE_ARRAY_SIZE);  // set line to all zeroes
         }
     }
+}
+
+void handle_signal(int signal) {
+
+    // Find out which signal we're handling
+    switch (signal) {
+        case SIGHUP:
+            cerr << "Caught SIGHUP exiting now" << endl;
+            break;
+        case SIGINT:
+            cerr << "Caught SIGINT, exiting now" << endl;
+            break;
+        case SIGTERM:
+            cerr << "Caught SIGTERM exiting now" << endl;
+        default:
+            cerr << "Caught wrong signal" << signal << endl;
+            return;
+    }
+    exit(-1);
 }
