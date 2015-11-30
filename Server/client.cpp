@@ -4,20 +4,46 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <signal.h> // sigterm,sigint
+#include <stdio.h>
 
 #define MAX_LINE 100
 #define LINE_ARRAY_SIZE (MAX_LINE+1)
 
+void handle_signal(int signal);
+
 using namespace std;
 
-int main()
-{
+int main() {
     int socketDescriptor;
     unsigned short int serverPort;
     struct sockaddr_in serverAddress;
     struct hostent *hostInfo;
     char buf[LINE_ARRAY_SIZE], c;
-    
+
+    struct sigaction sa;
+    // Setup the sighub handler
+    sa.sa_handler = &handle_signal;
+
+    // Restart the system call, if at all possible
+    sa.sa_flags = SA_RESTART;
+
+    // Block every signal during the handler
+    sigfillset(&sa.sa_mask);
+
+    // Intercept SIGHUP and SIGINT
+    if (sigaction(SIGHUP, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGHUP"); // Should not happen
+    }
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGINT"); // Should not happen
+    }
+
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        perror("Error: cannot handle SIGTERM"); // Should not happen
+    }
+
     cout << "Enter server host name or IP address: ";
     cin.get(buf, MAX_LINE, '\n');
     
@@ -60,19 +86,14 @@ int main()
         exit(1);
     }
     
-    cout << "\nEnter some lines, and the server will modify them and\n";
-    cout << "send them back.  When you are done, enter a line with\n";
-    cout << "just a dot, and nothing else.\n";
-    cout << "If a line is more than " << MAX_LINE << " characters, then\n";
-    cout << "only the first " << MAX_LINE << " characters will be used.\n\n";
+    cout << "Enter message" << endl;
     
     // Prompt the user for input, then read in the input, up to MAX_LINE
     // charactars, and then dispose of the rest of the line, including
     // the newline character.
     cout << "Input: ";
     cin.get(buf, MAX_LINE, '\n');
-    while (cin.get(c) && c != '\n')
-        ;
+    while (cin.get(c) && c != '\n');
     
     // Stop when the user inputs a line with just a dot.
     while (strcmp(buf, ".")) {
@@ -93,17 +114,35 @@ int main()
             exit(1);
         }
         
-        cout << "Modified: " << buf << "\n";
+        cout << "Received message: " << buf << "\n";
         
         // Prompt the user for input, then read in the input, up to MAX_LINE
         // charactars, and then dispose of the rest of the line, including
         // the newline character.  As above.
         cout << "Input: ";
         cin.get(buf, MAX_LINE, '\n');
-        while (cin.get(c) && c != '\n')
-            ;
+        while (cin.get(c) && c != '\n');
     }
     
     close(socketDescriptor);
     return 0;
+}
+
+void handle_signal(int signal) {
+
+    // Find out which signal we're handling
+    switch (signal) {
+        case SIGHUP:
+            cerr << "Caught SIGHUP exiting now" << endl;
+            break;
+        case SIGINT:
+            cerr << "Caught SIGINT, exiting now" << endl;
+            break;
+        case SIGTERM:
+            cerr << "Caught SIGTERM exiting now" << endl;
+        default:
+            cerr << "Caught wrong signal" << signal << endl;
+            return;
+    }
+    exit(-1);
 }
