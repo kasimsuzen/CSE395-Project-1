@@ -7,8 +7,8 @@
 
 using namespace std;
 
-int checkInternetAccess()
-{
+int checkInternetAccess(){
+
     int socketDescriptor;
     unsigned short int serverPort = 80;
     struct sockaddr_in serverAddress;
@@ -45,7 +45,7 @@ int checkInternetAccess()
     serverAddress.sin_port = htons(serverPort);
 				
     if (connect(socketDescriptor,(struct sockaddr *) &serverAddress,sizeof(serverAddress)) < 0) {
-        cerr << "cannot connect\n";
+        cerr << "cannot connect to internet\n";
         return -1;
     }
 
