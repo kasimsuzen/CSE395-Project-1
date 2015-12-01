@@ -6,9 +6,7 @@
 #include <iostream>
 #include <signal.h> // sigterm,sigint
 #include <stdio.h>
-
-#define MAX_LINE 100
-#define LINE_ARRAY_SIZE (MAX_LINE+1)
+#include "network.h"
 
 void handle_signal(int signal);
 
@@ -16,7 +14,6 @@ using namespace std;
 
 int main() {
     int socketDescriptor;
-    unsigned short int serverPort;
     struct sockaddr_in serverAddress;
     struct hostent *hostInfo;
     char buf[LINE_ARRAY_SIZE], c;
@@ -44,22 +41,19 @@ int main() {
         perror("Error: cannot handle SIGTERM"); // Should not happen
     }
 
-    cout << "Enter server host name or IP address: ";
-    cin.get(buf, MAX_LINE, '\n');
+    if(checkInternetAccess() < 0){
+        exit(-1);
+    }
     
     // gethostbyname() takes a host name or ip address in "numbers and
     // dots" notation, and returns a pointer to a hostent structure,
     // which we'll need later.  It's not important for us what this
     // structure is actually composed of.
-    hostInfo = gethostbyname(buf);
+    hostInfo = gethostbyname(SERVER_IP);
     if (hostInfo == NULL) {
-        cout << "problem interpreting host: " << buf << "\n";
+        cout << "problem interpreting host: " << SERVER_IP << "\n";
         exit(1);
     }
-    
-    cout << "Enter server port number: ";
-    cin >> serverPort;
-    cin.get(c); // dispose of the newline
     
     // Create a socket.  "AF_INET" means it will use the IPv4 protocol.
     // "SOCK_STREAM" means it will be a reliable connection (i.e., TCP;
@@ -77,7 +71,7 @@ int main() {
     serverAddress.sin_family = hostInfo->h_addrtype;
     memcpy((char *) &serverAddress.sin_addr.s_addr,
            hostInfo->h_addr_list[0], hostInfo->h_length);
-    serverAddress.sin_port = htons(serverPort);
+    serverAddress.sin_port = htons(SERVER_PORT);
 				
     if (connect(socketDescriptor,
                 (struct sockaddr *) &serverAddress,
