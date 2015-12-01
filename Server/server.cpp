@@ -1,20 +1,24 @@
 #include <arpa/inet.h>
-
+#include <signal.h> // sigterm,sigint
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <stdio.h>
 
 #define MAX_MSG 100
 #define LINE_ARRAY_SIZE (MAX_MSG+1)
 
 using namespace std;
 
+void handle_signal(int signal);
+
+
 int main()
 {
-    int listenSocket, connectSocket, i;
+    int listenSocket, connectSocket;
     unsigned short int listenPort;
     socklen_t clientAddressLength;
     struct sockaddr_in clientAddress, serverAddress;
