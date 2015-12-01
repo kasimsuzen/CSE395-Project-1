@@ -1,12 +1,18 @@
 CC= g++
-CFLAGS= -c -Wall
+CFLAGS= -Wall
 LDFLAGS=
 SOURCES= *.cpp *.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE= $(SOURCES).exe
+EXECUTABLE= $(SOURCES)
 
-all: $(SOURCES) $(EXECUTABLE)
-    
+all: server client
+
+server:
+	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< -o $@
+
+client:
+	$(CC) $(CFLAGS) client.cpp internetAccess.cpp $< -o $@
+
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
@@ -14,4 +20,4 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	-rm -f *.o core *.core $(EXECUTABLE)
+	-rm -f *.o server client
