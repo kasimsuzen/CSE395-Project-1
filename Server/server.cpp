@@ -7,9 +7,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdio.h>
-
-#define MAX_MSG 100
-#define LINE_ARRAY_SIZE (MAX_MSG+1)
+#include "network.h"
 
 using namespace std;
 
@@ -19,7 +17,6 @@ void handle_signal(int signal);
 int main()
 {
     int listenSocket, connectSocket;
-    unsigned short int listenPort;
     socklen_t clientAddressLength;
     struct sockaddr_in clientAddress, serverAddress;
     char line[LINE_ARRAY_SIZE];
@@ -46,9 +43,10 @@ int main()
         perror("Error: cannot handle SIGTERM"); // Should not happen
     }
     
-    cout << "Enter port number to listen on (between 1500 and 65000): ";
-    cin >> listenPort;
-    
+    if(checkInternetAccess() < 0){
+        exit(-1);
+    }
+
     // Create socket for listening for client connection requests.
     listenSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listenSocket < 0) {
@@ -64,7 +62,7 @@ int main()
     // Byte first).
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(listenPort);
+    serverAddress.sin_port = htons(SERVER_PORT);
     
     if (bind(listenSocket,
              (struct sockaddr *) &serverAddress,
@@ -80,7 +78,7 @@ int main()
     listen(listenSocket, 5);
     
     while (1) {
-        cout << "Waiting for TCP connection on port " << listenPort << " ...\n";
+        cout << "Waiting for TCP connection on port " << SERVER_PORT << " ...\n";
         
         // Accept a connection with a client that is requesting one.  The
         // accept() call is a blocking call; i.e., this thread of
