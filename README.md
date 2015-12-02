@@ -1,6 +1,12 @@
 # CSE395-Project-1
 This repository is for CSE395 course of Gebze Technical University Computer engineering Faculty 
 
+Things to do before compile and run
+* Install WiringPi library http://wiringpi.com/
+* Open shell access for serial from raspi-config
+* Open shell access for i2c from raspi-config
+
+Raspberry Pin Layout
 
 |    Description | Pin Number | Pin Number | Description    |
 |---------------:|------------|------------|----------------|
