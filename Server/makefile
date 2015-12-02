@@ -8,7 +8,7 @@ EXECUTABLE= $(SOURCES)
 all: server client
 
 server:
-	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< -o $@
+	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< -fopenmp -o $@
 
 client:
 	$(CC) $(CFLAGS) client.cpp internetAccess.cpp $< -o $@
