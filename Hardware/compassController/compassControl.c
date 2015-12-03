@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		printf("heading %7.3f \t ", heading);
 
 		//Sleep for 0.25ms
-		usleep(25000);
+		usleep(250000);
 
 	}
 
