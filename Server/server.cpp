@@ -14,6 +14,8 @@ using namespace std;
 
 void handle_signal(int signal);
 
+int isDeviceConnected = 0;
+int isInterfaceConnected = 0;
 
 int main()
 {
@@ -132,9 +134,15 @@ int main()
                     if(deviceID == -1)
                         deviceID = connectSocket;
 
-                    if(interfaceID != -1)
-                        if (send(interfaceID, "DeviceRespond", strlen("DeviceRespond") + 1, 0) < 0)
+                    if(interfaceID != -1){
+                        if(isDeviceConnected == 0){
+                            isDeviceConnected = 1;
+                            if (send(interfaceID, "DeviceOK", strlen("DeviceOK") + 1, 0) < 0)
+                                cerr << "Error: cannot send device confirmation for device";
+                        }
+                        else if (send(interfaceID, "DeviceRespond", strlen("DeviceRespond") + 1, 0) < 0)
                             cerr << "Error: cannot send modified data";
+                    }
                 }
                 //Interface sends data to server
                 else if(strcmp(line, "Interface") == 0)
@@ -142,9 +150,15 @@ int main()
                     if(interfaceID == -1)
                         interfaceID = connectSocket;
 
-                    if(deviceID != -1)
-                        if (send(deviceID, "InterfaceRespond", strlen("InterfaceRespond") + 1, 0) < 0)
+                    if(deviceID != -1){
+                        if(isInterfaceConnected == 0){
+                            isInterfaceConnected = 1;
+                            if (send(deviceID, "InterfaceOK", strlen("InterfaceOK") + 1, 0) < 0)
+                                cerr << "Error: cannot send device confirmation for interface";    
+                        }
+                        else if (send(deviceID, "InterfaceRespond", strlen("InterfaceRespond") + 1, 0) < 0)
                             cerr << "Error: cannot send modified data";
+                    }
                 }
                 
                 memset(line, 0x0, LINE_ARRAY_SIZE);  // set line to all zeroes
