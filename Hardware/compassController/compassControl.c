@@ -24,11 +24,12 @@
 
 int file;
 
+double headingAngle();
 void writeMagReg(uint8_t reg, uint8_t value);
 void readBlock(uint8_t command, uint8_t size, uint8_t *data);
 void readMAG(int * m);
 
-int main(int argc, char *argv[])
+double headingAngle()
 {
 	char filename[20];
 	int magRaw[3];
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
 	file = open(filename, O_RDWR);
 	if (file<0) {
         	printf("Unable to open I2C bus!");
-                exit(1);
+                return(-1);
 	}
 
 	//Select the magnetomoter
@@ -51,31 +52,22 @@ int main(int argc, char *argv[])
 	writeMagReg( 1, 0b00100000);   // +/-12gauss
 	writeMagReg( 2, 0b00000000);   // Continuous-conversion mode
 
-	while(1)
-	{
-		readMAG(magRaw);
-		printf("magRaw X %i    \tmagRaw Y %i \tMagRaw Z %i \n", magRaw[0],magRaw[1],magRaw[2]);
+	readMAG(magRaw);
+	//printf("magRaw X %i\t magRaw Y %i\t MagRaw Z %i \n", magRaw[0],magRaw[1],magRaw[2]);
 
-		//Only needed if the heading value does not increase when the magnetometer is rotated clockwise
-		magRaw[1] = -magRaw[1];
+	//Only needed if the heading value does not increase when the magnetometer is rotated clockwise
+	magRaw[1] = -magRaw[1];
 
-		//Compute heading
-	        float heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
+	//Compute heading
+	double heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
 
-		//Convert heading to 0 - 360
-        	if(heading < 0)
-	  	      heading += 360;
+	//Convert heading to 0 - 360
+        if(heading < 0)
+		heading += 360;
 
-		printf("heading %7.3f \t ", heading);
-
-		//Sleep for 0.25ms
-		usleep(250000);
-
-	}
-
+	//printf("heading %7.3f \t ", heading);
+	return heading;
 }
-
-
 
 void writeMagReg(uint8_t reg, uint8_t value)
 {
@@ -108,9 +100,3 @@ void readMAG(int  *m)
         *(m+2) = (int16_t)(block[4] | block[5] << 8);
 
 }
-
-
-
-
-
-
