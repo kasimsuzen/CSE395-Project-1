@@ -51,8 +51,8 @@ int parseGPSData(float *latitude, float *longitude) {
 	char buffer[4096], *bufferptr;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";
 	
-	*latitude = 0;
-	*longitude = 0;
+	*latitude = 5;
+	*longitude = 5;
 	
 	memset(buffer,'\0',4095);
 	readGPSData(buffer);
@@ -64,7 +64,7 @@ int parseGPSData(float *latitude, float *longitude) {
 		parseGPGGA(bufferptr, latitude, longitude);
 		bufferptr = strtok(buffer,"\n");
 	}
-	cout << "latitude = " << latitude << endl << "longitude = " << longitude;
+	cout << "latitude = " << *latitude << endl << "longitude = " << *longitude;
 
 }
 
