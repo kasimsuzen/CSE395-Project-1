@@ -3,9 +3,9 @@
 #include <unistd.h>
 #include "rs232.h"
 
-void readGPSData(unsigned char * buf){
+void readGPSData(char * buffer){
 	int i, n,cport_nr=22,bdrate=9600; // 22 stands for /dev/ttyAMA0 for linux systems
-
+	unsigned char buf[4095];
 	char mode[]={'8','N','1',0};
 
 	if(RS232_OpenComport(cport_nr, bdrate, mode))
@@ -30,5 +30,9 @@ void readGPSData(unsigned char * buf){
 
 		printf("%s\n", (char *)buf);
 	}
+
+	for(i=0; buf[i] != '\0';++i)
+		buffer[i] = buf[i];
+	buffer[i]='\0';
 }
 

@@ -3,7 +3,6 @@
 //
 //  Created by Ali Kürşat Şahin on 29.11.2015.
 //  Copyright © 2015 Ali Kürşat Şahin. All rights reserved.
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -11,7 +10,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
-
+#include "GPS.h"
 
 using namespace std;
 
@@ -48,23 +47,30 @@ void parseGPGGA(string arg1, float* latitude, float* longitude) {
 
 }
 
-int main(int argc, char **argv) {
-
-	float latitude = 0, longitude = 0;
+int parseGPSData(float *latitude, float *longitude) {
+	char buffer[4096], *bufferptr;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";
+	
+	*latitude = 0;
+	*longitude = 0;
+	
+	memset(buffer,'\0',4095);
+	readGPSData(buffer);
 
-	ifstream myfile("gps.txt");
-
-	if (myfile.is_open())
+	bufferptr = strtok(buffer,"\n");
+	while(bufferptr != NULL)
 	{
-		while (getline(myfile, line))
-		{
-			parseGPGGA(line, &latitude, &longitude);
-		}
-
-		myfile.close();
-
+		printf("%s\n",bufferptr);
+		parseGPGGA(bufferptr, latitude, longitude);
+		bufferptr = strtok(buffer,"\n");
 	}
 	cout << "latitude = " << latitude << endl << "longitude = " << longitude;
 
+}
+
+int main(int argc, char const *argv[])
+{
+	float a,b;
+	parseGPSData(&a,&b);
+	return 0;
 }
