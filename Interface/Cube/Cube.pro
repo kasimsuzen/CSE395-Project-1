@@ -15,10 +15,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    client.cpp
+    client.cpp \
+    shortestpath.cpp
 
 HEADERS  += mainwindow.h \
-    client.h
+    client.h \
+    shortestpath.h
 
 FORMS    += mainwindow.ui
 
