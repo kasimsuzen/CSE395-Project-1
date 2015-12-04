@@ -6,14 +6,18 @@
 #include <iostream>
 #include <signal.h> // sigterm,sigint
 #include <stdio.h>
+#include <pthread.h>
 #include "network.h"
+#include "../Hardware/hardware.h"
+
 
 void handle_signal(int signal);
 
 using namespace std;
 
-int main() {
+void* clientCube(void *p){
     int socketDescriptor;
+    static int isConnected = 0;
     struct sockaddr_in serverAddress;
     struct hostent *hostInfo;
     char buf[LINE_ARRAY_SIZE], c;
@@ -80,24 +84,29 @@ int main() {
         exit(1);
     }
     
-    cout << "Enter message" << endl;
-    
-    // Prompt the user for input, then read in the input, up to MAX_LINE
-    // charactars, and then dispose of the rest of the line, including
-    // the newline character.
-    cout << "Input: ";
-    cin.get(buf, MAX_LINE, '\n');
-    while (cin.get(c) && c != '\n');
-    
-    // Stop when the user inputs a line with just a dot.
-    while (strcmp(buf, ".")) {
+    while (1) {
         // Send the line to the server.
-        if (send(socketDescriptor, buf, strlen(buf) + 1, 0) < 0) {
+        if(isConnected == 0){
+            if (send(socketDescriptor, "Device", strlen("Device")+1, 0) < 0) { // there was +1 at size
+            cerr << "cannot send data ";
+            close(socketDescriptor);
+            exit(1);
+            }
+            ++isConnected;
+
+            if (recv(socketDescriptor, buf, MAX_LINE, 0) < 0) { // takes "DeviceOK" from server
+                cerr << "didn't get response from server?";
+                close(socketDescriptor);
+                exit(1);
+            }
+        }
+
+        if (send(socketDescriptor,&message, 1, 0) < 0) { // there was +1 at size
             cerr << "cannot send data ";
             close(socketDescriptor);
             exit(1);
         }
-        
+
         // Zero out the buffer.
         memset(buf, 0x0, LINE_ARRAY_SIZE);
         
@@ -107,15 +116,8 @@ int main() {
             close(socketDescriptor);
             exit(1);
         }
-        
-        cout << "Received message: " << buf << "\n";
-        
-        // Prompt the user for input, then read in the input, up to MAX_LINE
-        // charactars, and then dispose of the rest of the line, including
-        // the newline character.  As above.
-        cout << "Input: ";
-        cin.get(buf, MAX_LINE, '\n');
-        while (cin.get(c) && c != '\n');
+        pthread_cond_signal(&calculateSignal);
+    
     }
     
     close(socketDescriptor);

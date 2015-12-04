@@ -9,5 +9,6 @@
 #define THREAD_NUMBER 2
 
 int checkInternetAccess();
+void* clientCube(void *p);
 
 #endif
