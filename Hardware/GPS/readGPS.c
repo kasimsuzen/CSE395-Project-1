@@ -8,6 +8,10 @@ void readGPSData(char * buffer){
 	unsigned char buf[4095];
 	char mode[]={'8','N','1',0};
 
+	for(i=0; i < 4095;++i){
+		buf[i]= '\0';
+	}
+
 	if(RS232_OpenComport(cport_nr, bdrate, mode))
 	{
 		printf("Can not open comport\n");
@@ -18,7 +22,7 @@ void readGPSData(char * buffer){
 
 	if(n > 0)
 	{
-		buf[n] = 0;   /* always put a "null" at the end of a string! */
+		buf[n] = '\0';   /* always put a "null" at the end of a string! */
 
 		for(i=0; i < n; i++)
 		{
@@ -33,6 +37,6 @@ void readGPSData(char * buffer){
 
 	for(i=0; buf[i] != '\0';++i)
 		buffer[i] = buf[i];
-	buffer[i]='\0';
+	buffer[n]='\0';
 }
 
