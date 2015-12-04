@@ -11,6 +11,8 @@
 #include <fstream>
 #include <cstring>
 #include "GPS.h"
+#include <pthread.h>
+#include "../hardware.h"
 
 using namespace std;
 
@@ -47,30 +49,27 @@ void parseGPGGA(string arg1, float* latitude, float* longitude) {
 
 }
 
-int parseGPSData(float *latitude, float *longitude) {
+void * parseGPSData(void * p) {
 	char buffer[4096], *bufferptr;
+	float latitude,longitude;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";
-	
-	*latitude = 5;
-	*longitude = 5;
-	
-	memset(buffer,'\0',4095);
-	readGPSData(buffer);
+	while(1){
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&calculateSignal, &mutex);
+		
+		memset(buffer,'\0',4095);
+		readGPSData(buffer);
 
-	bufferptr = strtok(buffer,"\n");
-	while(bufferptr != NULL)
-	{
-		printf("%s\n",bufferptr);
-		parseGPGGA(bufferptr, latitude, longitude);
 		bufferptr = strtok(buffer,"\n");
+		while(bufferptr != NULL)
+		{
+			printf("%s\n",bufferptr);
+			parseGPGGA(bufferptr,&latitude,&longitude);
+			bufferptr = strtok(buffer,"\n");
+		}
+		cout << "latitude = " << latitude << endl << "longitude = " << longitude;
+		message.latitude = latitude;
+		message.longitude = longitude;
+		pthread_mutex_unlock(&mutex);
 	}
-	cout << "latitude = " << *latitude << endl << "longitude = " << *longitude;
-
-}
-
-int main(int argc, char const *argv[])
-{
-	float a,b;
-	parseGPSData(&a,&b);
-	return 0;
 }
