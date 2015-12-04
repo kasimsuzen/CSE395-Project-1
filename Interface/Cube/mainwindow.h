@@ -8,6 +8,9 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QDebug>
+#include <QList>
+#include <string.h>
 
 namespace Ui {
 class MainWindow;
@@ -19,13 +22,15 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    void paintEvent(QPaintEvent *);
+    void changeColor(QPushButton* btn);
     ~MainWindow();
+public slots:
 
+    void startProgram() {
+        qDebug() << "test";
+    }
 
 private slots:
-    void on_pushButton_clicked();
-
     void on_btn_clicked();
     void on_btn_2_clicked();
     void on_btn_3_clicked();
@@ -201,12 +206,28 @@ private slots:
     void on_btn_173_clicked();
     void on_btn_174_clicked();
     void on_btn_175_clicked();
+    void on_btn_176_clicked();
+    void on_btn_177_clicked();
+    void on_btn_178_clicked();
+    void on_btn_179_clicked();
+    void on_btn_180_clicked();
+    void on_btn_181_clicked();
+
+    void on_connectServer_clicked();
+
+    void on_findPath_clicked();
 
 private:
     Ui::MainWindow *ui;
     bool drawShapes;
-    void changeColor(QPushButton* btn);
-
+    QList<QPushButton*> list;
+    void changeBtnColor(int y, int x,char *color);
+    char* qstrToChar(QString str);
+    int targetLocation[2]; //targetLocation[0] = y (satir) // targetLocation[1] = x (sutun)
+    int currentLocation[2];
+    void drawPath();
+    void clearBtnColor();
+    void drawPathHelper(int *location);
 };
 
 #endif // MAINWINDOW_H
