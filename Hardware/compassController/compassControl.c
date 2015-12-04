@@ -15,58 +15,61 @@
     MA 02111-1307, USA
 */
 #include <stdint.h>
-#include "HMC5883L.h"
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <pthread.h>
+#include <sys/ioctl.h>
+#include "HMC5883L.h"
+#include "../hardware.h"
+#include "compass.h"
 
 int file;
 
-double headingAngle();
-void writeMagReg(uint8_t reg, uint8_t value);
-void readBlock(uint8_t command, uint8_t size, uint8_t *data);
-void readMAG(int * m);
-
-double headingAngle()
+void * headingAngle(void * p)
 {
 	char filename[20];
 	int magRaw[3];
+    while(1){
+        pthread_mutex_lock(&mutex);
+        pthread_cond_wait(&calculateSignal,&mutex);
+    	//Open the i2c bus
+    	sprintf(filename, "/dev/i2c-%d", 1);
+    	file = open(filename, O_RDWR);
+    	if (file<0) {
+           	printf("Unable to open I2C bus!");
+            exit(-1);
+    	}
 
-	//Open the i2c bus
-	sprintf(filename, "/dev/i2c-%d", 1);
-	file = open(filename, O_RDWR);
-	if (file<0) {
-        	printf("Unable to open I2C bus!");
-                return(-1);
-	}
-
-	//Select the magnetomoter
-	if (ioctl(file, I2C_SLAVE, MAG_ADDRESS) < 0) {
-                printf("Error: Could not select magnetometer\n");
+    	//Select the magnetomoter
+    	if (ioctl(file, I2C_SLAVE, MAG_ADDRESS) < 0) {
+            printf("Error: Could not select magnetometer\n");
         }
 
-	//Enable the magnetometer
-	writeMagReg( 0, 0b01110000);   // Temp enable, M data rate = 50Hz
-	writeMagReg( 1, 0b00100000);   // +/-12gauss
-	writeMagReg( 2, 0b00000000);   // Continuous-conversion mode
+    	//Enable the magnetometer
+    	writeMagReg( 0, 0b01110000);   // Temp enable, M data rate = 50Hz
+    	writeMagReg( 1, 0b00100000);   // +/-12gauss
+    	writeMagReg( 2, 0b00000000);   // Continuous-conversion mode
 
-	readMAG(magRaw);
-	//printf("magRaw X %i\t magRaw Y %i\t MagRaw Z %i \n", magRaw[0],magRaw[1],magRaw[2]);
+    	readMAG(magRaw);
+    	//printf("magRaw X %i\t magRaw Y %i\t MagRaw Z %i \n", magRaw[0],magRaw[1],magRaw[2]);
 
-	//Only needed if the heading value does not increase when the magnetometer is rotated clockwise
-	magRaw[1] = -magRaw[1];
+    	//Only needed if the heading value does not increase when the magnetometer is rotated clockwise
+    	magRaw[1] = -magRaw[1];
 
-	//Compute heading
-	double heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
+    	//Compute heading
+    	double heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
 
-	//Convert heading to 0 - 360
+    	//Convert heading to 0 - 360
         if(heading < 0)
-		heading += 360;
+    		heading += 360;
 
-	//printf("heading %7.3f \t ", heading);
-	return heading;
+    	//printf("heading %7.3f \t ", heading);
+    	message.heading = heading;
+        pthread_mutex_unlock(&mutex);
+    }
 }
 
 void writeMagReg(uint8_t reg, uint8_t value)
