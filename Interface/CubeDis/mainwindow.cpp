@@ -17,22 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_3);
     list.append(ui->btn_4);
     list.append(ui->btn_5);
-    list.append(ui->btn_6);
     list.append(ui->btn_7);
-    list.append(ui->btn_8);
-    list.append(ui->btn_9);
-    list.append(ui->btn_10);
     list.append(ui->btn_11);
-    list.append(ui->btn_12);
-    list.append(ui->btn_13);
-    list.append(ui->btn_14);
-    list.append(ui->btn_15);
-    list.append(ui->btn_16);
-    list.append(ui->btn_17);
-    list.append(ui->btn_18);
     list.append(ui->btn_19);
     list.append(ui->btn_20);
-    list.append(ui->btn_21);
     list.append(ui->btn_22);
     list.append(ui->btn_23);
     list.append(ui->btn_24);
@@ -62,24 +50,11 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_48);
     list.append(ui->btn_49);
     list.append(ui->btn_50);
-    list.append(ui->btn_51);
-    list.append(ui->btn_52);
-    list.append(ui->btn_53);
-    list.append(ui->btn_54);
-    list.append(ui->btn_55);
-    list.append(ui->btn_56);
-    list.append(ui->btn_57);
-    list.append(ui->btn_58);
-    list.append(ui->btn_59);
     list.append(ui->btn_60);
     list.append(ui->btn_61);
     list.append(ui->btn_62);
     list.append(ui->btn_63);
-    list.append(ui->btn_64);
-    list.append(ui->btn_65);
     list.append(ui->btn_66);
-    list.append(ui->btn_67);
-    list.append(ui->btn_68);
     list.append(ui->btn_69);
     list.append(ui->btn_70);
     list.append(ui->btn_71);
@@ -91,8 +66,6 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_77);
     list.append(ui->btn_78);
     list.append(ui->btn_79);
-    list.append(ui->btn_80);
-    list.append(ui->btn_81);
     list.append(ui->btn_82);
     list.append(ui->btn_83);
     list.append(ui->btn_84);
@@ -138,13 +111,6 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_124);
     list.append(ui->btn_125);
     list.append(ui->btn_126);
-    list.append(ui->btn_127);
-    list.append(ui->btn_128);
-    list.append(ui->btn_129);
-    list.append(ui->btn_130);
-    list.append(ui->btn_131);
-    list.append(ui->btn_132);
-    list.append(ui->btn_133);
     list.append(ui->btn_134);
     list.append(ui->btn_135);
     list.append(ui->btn_136);
@@ -176,7 +142,6 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_162);
     list.append(ui->btn_163);
     list.append(ui->btn_164);
-    list.append(ui->btn_165);
     list.append(ui->btn_166);
     list.append(ui->btn_167);
     list.append(ui->btn_168);
@@ -195,10 +160,6 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_181);
     list.append(ui->btn_182);
     list.append(ui->btn_183);
-    list.append(ui->btn_184);
-    list.append(ui->btn_185);
-    list.append(ui->btn_186);
-    list.append(ui->btn_187);
     list.append(ui->btn_188);
     list.append(ui->btn_189);
     list.append(ui->btn_190);
@@ -231,32 +192,10 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->btn_217);
     list.append(ui->btn_218);
     list.append(ui->btn_219);
-    list.append(ui->btn_220);
     list.append(ui->btn_221);
     list.append(ui->btn_222);
     list.append(ui->btn_223);
     list.append(ui->btn_224);
-    list.append(ui->btn_225);
-    list.append(ui->btn_226);
-    list.append(ui->btn_227);
-    list.append(ui->btn_228);
-    list.append(ui->btn_229);
-    list.append(ui->btn_230);
-    list.append(ui->btn_231);
-    list.append(ui->btn_232);
-    list.append(ui->btn_233);
-    list.append(ui->btn_234);
-    list.append(ui->btn_235);
-    list.append(ui->btn_236);
-    list.append(ui->btn_237);
-    list.append(ui->btn_238);
-    list.append(ui->btn_239);
-    list.append(ui->btn_240);
-    list.append(ui->btn_241);
-    list.append(ui->btn_242);
-    list.append(ui->btn_243);
-    list.append(ui->btn_244);
-    list.append(ui->btn_245);
     list.append(ui->btn_246);
     list.append(ui->btn_247);
     list.append(ui->btn_248);
@@ -272,8 +211,8 @@ MainWindow::MainWindow(QWidget *parent) :
     targetLocation[1]=-1;
 
     // default current location
-    currentLocation[0]=10;
-    currentLocation[1]=0;
+    currentLocation[0]=1;
+    currentLocation[1]=7;
     changeBtnColor(currentLocation[0],currentLocation[1],(char *)"blue");
 
 }
@@ -394,13 +333,69 @@ void MainWindow::on_findPath_clicked()
         sp.addEdge(adjacency_list,i,i+1);
     }
 
-    // bilgisayar bolgesi
+    // en sol dikey cizgi
     for (int i = 1; i < 21; ++i)
     {
         sp.addEdge(adjacency_list,43*i,43*(i-1));
         sp.addEdge(adjacency_list,43*i,43*(i+1));
     }
 
+    //bilgisayar bolgesi
+    sp.addEdge(adjacency_list,7,7+43);
+    sp.addEdge(adjacency_list,50,7);
+    sp.addEdge(adjacency_list,50,93);
+
+    sp.addEdge(adjacency_list,93,50);
+    sp.addEdge(adjacency_list,93,93+43);
+
+    sp.addEdge(adjacency_list,93+43,93);
+    sp.addEdge(adjacency_list,93+43,93+43+1);
+
+    sp.addEdge(adjacency_list,137,136);
+    sp.addEdge(adjacency_list,137,180);
+
+    sp.addEdge(adjacency_list,180,137);
+    sp.addEdge(adjacency_list,180,223);
+
+    sp.addEdge(adjacency_list,223,180);
+    sp.addEdge(adjacency_list,223,224);
+
+
+    // bilgisayar ve kutuphane arasi duz hat
+    for (int i = 9; i < 35; ++i)
+    {
+        sp.addEdge(adjacency_list,43*5+i,43*5+i+1);
+        sp.addEdge(adjacency_list,43*5+i,43*5+i-1);
+    }
+
+    // yukardan kutphaneye
+    sp.addEdge(adjacency_list,35,34);
+    sp.addEdge(adjacency_list,35,78);
+
+    for (int i = 1; i < 25; ++i)
+    {
+        sp.addEdge(adjacency_list,35+43*i,35+43*(i-1));
+        sp.addEdge(adjacency_list,35+43*i,35+43*(i+1));
+    }
+
+    sp.addEdge(adjacency_list,43*5+35,43*5+35-1);
+
+    sp.addEdge(adjacency_list,43*7+33,43*7+33+1);
+
+    sp.addEdge(adjacency_list,43*7+34,43*7+33);
+    sp.addEdge(adjacency_list,43*7+34,43*7+35);
+
+    sp.addEdge(adjacency_list,43*7+35,43*7+34);
+
+    sp.addEdge(adjacency_list,43*11,43*11+1);
+
+    for (int i = 1; i < 35; ++i)
+    {
+        sp.addEdge(adjacency_list,43*11+i,43*11+i+1);
+        sp.addEdge(adjacency_list,43*11+i,43*11+i-1);
+    }
+
+    sp.addEdge(adjacency_list,43*11+35,43*11+34);
 
 
     int current=currentLocation[0]*43+currentLocation[1];
@@ -419,7 +414,7 @@ void MainWindow::on_findPath_clicked()
         y = path.front()/43;
         changeBtnColor(y,x, (char*)"yellow");
 
-        qDebug() << path.front();
+        //qDebug() << path.front();
         path.pop_front();
     }
 
@@ -432,22 +427,10 @@ void MainWindow::on_btn_2_clicked(){ changeColor(ui->btn_2); }
 void MainWindow::on_btn_3_clicked(){ changeColor(ui->btn_3); }
 void MainWindow::on_btn_4_clicked(){ changeColor(ui->btn_4); }
 void MainWindow::on_btn_5_clicked(){ changeColor(ui->btn_5); }
-void MainWindow::on_btn_6_clicked(){ changeColor(ui->btn_6); }
 void MainWindow::on_btn_7_clicked(){ changeColor(ui->btn_7); }
-void MainWindow::on_btn_8_clicked(){ changeColor(ui->btn_8); }
-void MainWindow::on_btn_9_clicked(){ changeColor(ui->btn_9); }
-void MainWindow::on_btn_10_clicked(){ changeColor(ui->btn_10); }
 void MainWindow::on_btn_11_clicked(){ changeColor(ui->btn_11); }
-void MainWindow::on_btn_12_clicked(){ changeColor(ui->btn_12); }
-void MainWindow::on_btn_13_clicked(){ changeColor(ui->btn_13); }
-void MainWindow::on_btn_14_clicked(){ changeColor(ui->btn_14); }
-void MainWindow::on_btn_15_clicked(){ changeColor(ui->btn_15); }
-void MainWindow::on_btn_16_clicked(){ changeColor(ui->btn_16); }
-void MainWindow::on_btn_17_clicked(){ changeColor(ui->btn_17); }
-void MainWindow::on_btn_18_clicked(){ changeColor(ui->btn_18); }
 void MainWindow::on_btn_19_clicked(){ changeColor(ui->btn_19); }
 void MainWindow::on_btn_20_clicked(){ changeColor(ui->btn_20); }
-void MainWindow::on_btn_21_clicked(){ changeColor(ui->btn_21); }
 void MainWindow::on_btn_22_clicked(){ changeColor(ui->btn_22); }
 void MainWindow::on_btn_23_clicked(){ changeColor(ui->btn_23); }
 void MainWindow::on_btn_24_clicked(){ changeColor(ui->btn_24); }
@@ -477,24 +460,11 @@ void MainWindow::on_btn_47_clicked(){ changeColor(ui->btn_47); }
 void MainWindow::on_btn_48_clicked(){ changeColor(ui->btn_48); }
 void MainWindow::on_btn_49_clicked(){ changeColor(ui->btn_49); }
 void MainWindow::on_btn_50_clicked(){ changeColor(ui->btn_50); }
-void MainWindow::on_btn_51_clicked(){ changeColor(ui->btn_51); }
-void MainWindow::on_btn_52_clicked(){ changeColor(ui->btn_52); }
-void MainWindow::on_btn_53_clicked(){ changeColor(ui->btn_53); }
-void MainWindow::on_btn_54_clicked(){ changeColor(ui->btn_54); }
-void MainWindow::on_btn_55_clicked(){ changeColor(ui->btn_55); }
-void MainWindow::on_btn_56_clicked(){ changeColor(ui->btn_56); }
-void MainWindow::on_btn_57_clicked(){ changeColor(ui->btn_57); }
-void MainWindow::on_btn_58_clicked(){ changeColor(ui->btn_58); }
-void MainWindow::on_btn_59_clicked(){ changeColor(ui->btn_59); }
 void MainWindow::on_btn_60_clicked(){ changeColor(ui->btn_60); }
 void MainWindow::on_btn_61_clicked(){ changeColor(ui->btn_61); }
 void MainWindow::on_btn_62_clicked(){ changeColor(ui->btn_62); }
 void MainWindow::on_btn_63_clicked(){ changeColor(ui->btn_63); }
-void MainWindow::on_btn_64_clicked(){ changeColor(ui->btn_64); }
-void MainWindow::on_btn_65_clicked(){ changeColor(ui->btn_65); }
 void MainWindow::on_btn_66_clicked(){ changeColor(ui->btn_66); }
-void MainWindow::on_btn_67_clicked(){ changeColor(ui->btn_67); }
-void MainWindow::on_btn_68_clicked(){ changeColor(ui->btn_68); }
 void MainWindow::on_btn_69_clicked(){ changeColor(ui->btn_69); }
 void MainWindow::on_btn_70_clicked(){ changeColor(ui->btn_70); }
 void MainWindow::on_btn_71_clicked(){ changeColor(ui->btn_71); }
@@ -506,8 +476,6 @@ void MainWindow::on_btn_76_clicked(){ changeColor(ui->btn_76); }
 void MainWindow::on_btn_77_clicked(){ changeColor(ui->btn_77); }
 void MainWindow::on_btn_78_clicked(){ changeColor(ui->btn_78); }
 void MainWindow::on_btn_79_clicked(){ changeColor(ui->btn_79); }
-void MainWindow::on_btn_80_clicked(){ changeColor(ui->btn_80); }
-void MainWindow::on_btn_81_clicked(){ changeColor(ui->btn_81); }
 void MainWindow::on_btn_82_clicked(){ changeColor(ui->btn_82); }
 void MainWindow::on_btn_83_clicked(){ changeColor(ui->btn_83); }
 void MainWindow::on_btn_84_clicked(){ changeColor(ui->btn_84); }
@@ -553,13 +521,6 @@ void MainWindow::on_btn_123_clicked(){ changeColor(ui->btn_123); }
 void MainWindow::on_btn_124_clicked(){ changeColor(ui->btn_124); }
 void MainWindow::on_btn_125_clicked(){ changeColor(ui->btn_125); }
 void MainWindow::on_btn_126_clicked(){ changeColor(ui->btn_126); }
-void MainWindow::on_btn_127_clicked(){ changeColor(ui->btn_127); }
-void MainWindow::on_btn_128_clicked(){ changeColor(ui->btn_128); }
-void MainWindow::on_btn_129_clicked(){ changeColor(ui->btn_129); }
-void MainWindow::on_btn_130_clicked(){ changeColor(ui->btn_130); }
-void MainWindow::on_btn_131_clicked(){ changeColor(ui->btn_131); }
-void MainWindow::on_btn_132_clicked(){ changeColor(ui->btn_132); }
-void MainWindow::on_btn_133_clicked(){ changeColor(ui->btn_133); }
 void MainWindow::on_btn_134_clicked(){ changeColor(ui->btn_134); }
 void MainWindow::on_btn_135_clicked(){ changeColor(ui->btn_135); }
 void MainWindow::on_btn_136_clicked(){ changeColor(ui->btn_136); }
@@ -591,7 +552,6 @@ void MainWindow::on_btn_161_clicked(){ changeColor(ui->btn_161); }
 void MainWindow::on_btn_162_clicked(){ changeColor(ui->btn_162); }
 void MainWindow::on_btn_163_clicked(){ changeColor(ui->btn_163); }
 void MainWindow::on_btn_164_clicked(){ changeColor(ui->btn_164); }
-void MainWindow::on_btn_165_clicked(){ changeColor(ui->btn_165); }
 void MainWindow::on_btn_166_clicked(){ changeColor(ui->btn_166); }
 void MainWindow::on_btn_167_clicked(){ changeColor(ui->btn_167); }
 void MainWindow::on_btn_168_clicked(){ changeColor(ui->btn_168); }
@@ -610,10 +570,7 @@ void MainWindow::on_btn_180_clicked(){ changeColor(ui->btn_180); }
 void MainWindow::on_btn_181_clicked(){ changeColor(ui->btn_181); }
 void MainWindow::on_btn_182_clicked(){ changeColor(ui->btn_182); }
 void MainWindow::on_btn_183_clicked(){ changeColor(ui->btn_183); }
-void MainWindow::on_btn_184_clicked(){ changeColor(ui->btn_184); }
 void MainWindow::on_btn_185_clicked(){ changeColor(ui->btn_185); }
-void MainWindow::on_btn_186_clicked(){ changeColor(ui->btn_186); }
-void MainWindow::on_btn_187_clicked(){ changeColor(ui->btn_187); }
 void MainWindow::on_btn_188_clicked(){ changeColor(ui->btn_188); }
 void MainWindow::on_btn_189_clicked(){ changeColor(ui->btn_189); }
 void MainWindow::on_btn_190_clicked(){ changeColor(ui->btn_190); }
@@ -646,32 +603,10 @@ void MainWindow::on_btn_216_clicked(){ changeColor(ui->btn_216); }
 void MainWindow::on_btn_217_clicked(){ changeColor(ui->btn_217); }
 void MainWindow::on_btn_218_clicked(){ changeColor(ui->btn_218); }
 void MainWindow::on_btn_219_clicked(){ changeColor(ui->btn_219); }
-void MainWindow::on_btn_220_clicked(){ changeColor(ui->btn_220); }
 void MainWindow::on_btn_221_clicked(){ changeColor(ui->btn_221); }
 void MainWindow::on_btn_222_clicked(){ changeColor(ui->btn_222); }
 void MainWindow::on_btn_223_clicked(){ changeColor(ui->btn_223); }
 void MainWindow::on_btn_224_clicked(){ changeColor(ui->btn_224); }
-void MainWindow::on_btn_225_clicked(){ changeColor(ui->btn_225); }
-void MainWindow::on_btn_226_clicked(){ changeColor(ui->btn_226); }
-void MainWindow::on_btn_227_clicked(){ changeColor(ui->btn_227); }
-void MainWindow::on_btn_228_clicked(){ changeColor(ui->btn_228); }
-void MainWindow::on_btn_229_clicked(){ changeColor(ui->btn_229); }
-void MainWindow::on_btn_230_clicked(){ changeColor(ui->btn_230); }
-void MainWindow::on_btn_231_clicked(){ changeColor(ui->btn_231); }
-void MainWindow::on_btn_232_clicked(){ changeColor(ui->btn_232); }
-void MainWindow::on_btn_233_clicked(){ changeColor(ui->btn_233); }
-void MainWindow::on_btn_234_clicked(){ changeColor(ui->btn_234); }
-void MainWindow::on_btn_235_clicked(){ changeColor(ui->btn_235); }
-void MainWindow::on_btn_236_clicked(){ changeColor(ui->btn_236); }
-void MainWindow::on_btn_237_clicked(){ changeColor(ui->btn_237); }
-void MainWindow::on_btn_238_clicked(){ changeColor(ui->btn_238); }
-void MainWindow::on_btn_239_clicked(){ changeColor(ui->btn_239); }
-void MainWindow::on_btn_240_clicked(){ changeColor(ui->btn_240); }
-void MainWindow::on_btn_241_clicked(){ changeColor(ui->btn_241); }
-void MainWindow::on_btn_242_clicked(){ changeColor(ui->btn_242); }
-void MainWindow::on_btn_243_clicked(){ changeColor(ui->btn_243); }
-void MainWindow::on_btn_244_clicked(){ changeColor(ui->btn_244); }
-void MainWindow::on_btn_245_clicked(){ changeColor(ui->btn_245); }
 void MainWindow::on_btn_246_clicked(){ changeColor(ui->btn_246); }
 void MainWindow::on_btn_247_clicked(){ changeColor(ui->btn_247); }
 void MainWindow::on_btn_248_clicked(){ changeColor(ui->btn_248); }
