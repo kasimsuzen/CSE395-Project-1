@@ -1,188 +1,163 @@
-#include <arpa/inet.h>
-#include <signal.h> // sigterm,sigint
-#include <netdb.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <cstring>
-#include <cstdlib>
 #include <iostream>
-#include <stdio.h>
-#include "network.h"
-#include <omp.h>
+#include <list>
+#include <map>
+#include <queue>
+#include <cstdlib>
+
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 using namespace std;
+using namespace boost::asio;
+using namespace boost::asio::ip;
 
-void handle_signal(int signal);
+typedef boost::shared_ptr<tcp::socket> socket_ptr;
+typedef boost::shared_ptr<string> string_ptr;
+typedef map<socket_ptr, string_ptr> clientMap;
+typedef boost::shared_ptr<clientMap> clientMap_ptr;
+typedef boost::shared_ptr< list<socket_ptr> > clientList_ptr;
+typedef boost::shared_ptr< queue<clientMap_ptr> > messageQueue_ptr;
 
-int isDeviceConnected = 0;
-int isInterfaceConnected = 0;
+io_service service;
+tcp::acceptor acceptor(service, tcp::endpoint(tcp::v4(), 8001));
+boost::mutex mtx;
+clientList_ptr clientList(new list<socket_ptr>);
+messageQueue_ptr messageQueue(new queue<clientMap_ptr>) ;
 
-int main()
+const int bufSize = 1024;
+enum sleepLen // Time is in milliseconds
 {
-    int listenSocket, connectSocket;
-    socklen_t clientAddressLength;
-    struct sockaddr_in clientAddress, serverAddress;
-    char line[LINE_ARRAY_SIZE];
-    struct sigaction sa;
-    int deviceID=-1, interfaceID=-1;
-    // Setup the sighub handler
-    sa.sa_handler = &handle_signal;
+    sml = 100,
+    lon = 200
+};
 
-    // Restart the system call, if at all possible
-    sa.sa_flags = SA_RESTART;
+// Function Prototypes
+bool clientSentExit(string_ptr);
+void disconnectClient(socket_ptr);
+void acceptorLoop();
+void requestLoop();
+void responseLoop();
+// End of Function Prototypes
 
-    // Block every signal during the handler
-    sigfillset(&sa.sa_mask);
+int main(int argc, char** argv)
+{
+    boost::thread_group threads;
 
-    // Intercept SIGHUP and SIGINT
-    if (sigaction(SIGHUP, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGHUP"); // Should not happen
-    }
+    threads.create_thread(boost::bind(acceptorLoop));
+    boost::this_thread::sleep( boost::posix_time::millisec(sleepLen::sml));
 
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGINT"); // Should not happen
-    }
+    threads.create_thread(boost::bind(requestLoop));
+    boost::this_thread::sleep( boost::posix_time::millisec(sleepLen::sml));
 
-    if (sigaction(SIGTERM, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGTERM"); // Should not happen
-    }
-    
-    if(checkInternetAccess() < 0){
-        exit(-1);
-    }
+    threads.create_thread(boost::bind(responseLoop));
+    boost::this_thread::sleep( boost::posix_time::millisec(sleepLen::sml));
 
-    // Create socket for listening for client connection requests.
-    listenSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (listenSocket < 0) {
-        cerr << "cannot create listen socket";
-        exit(1);
-    }
-    
-    // Bind listen socket to listen port.  First set various fields in
-    // the serverAddress structure, then call bind().
-    // htonl() and htons() convert long integers and short integers
-    // (respectively) from host byte order (on x86 this is Least
-    // Significant Byte first) to network byte order (Most Significant
-    // Byte first).
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-    serverAddress.sin_port = htons(SERVER_PORT);
-    
-    if (bind(listenSocket,
-             (struct sockaddr *) &serverAddress,
-             sizeof(serverAddress)) < 0) {
-        cerr << "cannot bind socket";
-        exit(1); 
-    }
-    
-    while (1) {
-        cout << "Waiting for TCP connection on port " << SERVER_PORT << " ...\n";
-    
-        // Accept a connection with a client that is requesting one.  The
-        // accept() call is a blocking call; i.e., this thread of
-        // execution stops until a connection comes in.
-        // connectSocket is a new socket that the system provides,
-        // separate from listenSocket.  We *could* accept more
-        // connections on listenSocket, before connectSocket is closed,
-        // but this program doesn't do that.
+    threads.join_all();
 
-        //Threading Part
-        //connectSocket private for each threads.
-        //deviceID and interfaceID used as shared.
-        #pragma omp parallel num_threads(THREAD_NUMBER) private(connectSocket) shared(deviceID, interfaceID)
-        {
-            // Wait for connections from clients.
-            // This is a non-blocking call; i.e., it registers this program with
-            // the system as expecting connections on this socket, and then
-            // this thread of execution continues on.
-            listen(listenSocket, 5);
-            
-            
-            clientAddressLength = sizeof(clientAddress);
-            connectSocket = accept(listenSocket,
-                                   (struct sockaddr *) &clientAddress,
-                                   &clientAddressLength);
-            if (connectSocket < 0) {
-                cerr << "cannot accept connection ";
-                exit(1);
-            }
-            
-            // Show the IP address of the client.
-            // inet_ntoa() converts an IP address from binary form to the
-            // standard "numbers and dots" notation.
-            cout << "  connected to " << inet_ntoa(clientAddress.sin_addr);
-            
-            // Show the client's port number.
-            // ntohs() converts a short int from network byte order (which is
-            // Most Significant Byte first) to host byte order (which on x86,
-            // for example, is Least Significant Byte first).
-            cout << ":" << ntohs(clientAddress.sin_port) << "\n";
-            
-            // Read lines from socket, using recv(), storing them in the line
-            // array.  If no messages are currently available, recv() blocks
-            // until one arrives.
-            // First set line to all zeroes, so we'll know where the end of
-            // the string is.
-            memset(line, 0x0, LINE_ARRAY_SIZE);
+    puts("Press any key to continue...");
+    getc(stdin);
+    return EXIT_SUCCESS;
+} 
 
-            while (recv(connectSocket, line, MAX_MSG, 0) > 0) {
-                cout << "  --  " << line << "\n";
+void acceptorLoop()
+{
+    cout << "Waiting for clients..." << endl;
 
-                //Device sends data to server
-                if(strcmp(line, "Device") == 0)
-                {
-                    if(deviceID == -1)
-                        deviceID = connectSocket;
+    for(;;)
+    {
+        socket_ptr clientSock(new tcp::socket(service));
 
-                    if(interfaceID != -1){
-                        if(isDeviceConnected == 0){
-                            isDeviceConnected = 1;
-                            if (send(interfaceID, "DeviceOK", strlen("DeviceOK") + 1, 0) < 0)
-                                cerr << "Error: cannot send device confirmation for device";
-                        }
-                        else if (send(interfaceID, "DeviceRespond", strlen("DeviceRespond") + 1, 0) < 0)
-                            cerr << "Error: cannot send modified data";
-                    }
-                }
-                //Interface sends data to server
-                else if(strcmp(line, "Interface") == 0)
-                {
-                    if(interfaceID == -1)
-                        interfaceID = connectSocket;
+        acceptor.accept(*clientSock);
 
-                    if(deviceID != -1){
-                        if(isInterfaceConnected == 0){
-                            isInterfaceConnected = 1;
-                            if (send(deviceID, "InterfaceOK", strlen("InterfaceOK") + 1, 0) < 0)
-                                cerr << "Error: cannot send device confirmation for interface";    
-                        }
-                        else if (send(deviceID, "InterfaceRespond", strlen("InterfaceRespond") + 1, 0) < 0)
-                            cerr << "Error: cannot send modified data";
-                    }
-                }
-                
-                memset(line, 0x0, LINE_ARRAY_SIZE);  // set line to all zeroes
-            }
-        }
-        
+        cout << "New client joined! ";
+
+        mtx.lock();
+        clientList->emplace_back(clientSock);
+        mtx.unlock();
+
+        cout << clientList->size() << " total clients" << endl;
     }
 }
 
-void handle_signal(int signal) {
+void requestLoop()
+{
+    for(;;)
+    {
+        if(!clientList->empty())
+        {
+            mtx.lock();
+            for(auto& clientSock : *clientList)
+            {
+                if(clientSock->available())
+                {
+                    char readBuf[bufSize] = {0};
 
-    // Find out which signal we're handling
-    switch (signal) {
-        case SIGHUP:
-            cerr << "Caught SIGHUP exiting now" << endl;
-            break;
-        case SIGINT:
-            cerr << "Caught SIGINT, exiting now" << endl;
-            break;
-        case SIGTERM:
-            cerr << "Caught SIGTERM exiting now" << endl;
-        default:
-            cerr << "Caught wrong signal" << signal << endl;
-            return;
+                    int bytesRead = clientSock->read_some(buffer(readBuf, bufSize));
+
+                    string_ptr msg(new string(readBuf, bytesRead));
+
+                    if(clientSentExit(msg))
+                    {
+                        disconnectClient(clientSock);
+                        break;
+                    }
+
+                    clientMap_ptr cm(new clientMap);
+                    cm->insert(pair<socket_ptr, string_ptr>(clientSock, msg));
+
+                    messageQueue->push(cm);
+
+                    cout << "ChatLog: " << *msg << endl;
+                }
+            }
+            mtx.unlock();
+        }
+
+        boost::this_thread::sleep( boost::posix_time::millisec(sleepLen::lon));
     }
-    exit(-1);
+}
+
+bool clientSentExit(string_ptr message)
+{
+    if(message->find("exit") != string::npos)
+        return true;
+    else
+        return false;
+}
+
+void disconnectClient(socket_ptr clientSock)
+{
+    auto position = find(clientList->begin(), clientList->end(), clientSock);
+    
+    clientSock->shutdown(tcp::socket::shutdown_both);
+    clientSock->close();
+    
+    clientList->erase(position);
+
+    cout << "Client Disconnected! " << clientList->size() << " total clients" << endl;
+}
+
+void responseLoop()
+{
+    for(;;)
+    {
+        if(!messageQueue->empty())
+        {
+            auto message = messageQueue->front();
+
+            mtx.lock();
+            for(auto& clientSock : *clientList)
+            {
+                clientSock->write_some(buffer(*(message->begin()->second), bufSize));
+            }
+            mtx.unlock();
+
+            mtx.lock();
+            messageQueue->pop();
+            mtx.unlock();
+        }
+
+        boost::this_thread::sleep( boost::posix_time::millisec(sleepLen::lon));
+    }
 }
