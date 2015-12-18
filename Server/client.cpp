@@ -1,144 +1,153 @@
-#include <netdb.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <cstring>
-#include <cstdlib>
 #include <iostream>
-#include <signal.h> // sigterm,sigint
-#include <stdio.h>
-#include <pthread.h>
+#include <queue>
+#include <string>
+#include <cstdlib>
 #include "network.h"
-#include "../Hardware/hardware.h"
-
-
-void handle_signal(int signal);
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
+using namespace boost;
+using namespace boost::asio;
+using namespace boost::asio::ip;
 
-void* clientCube(void *p){
-    int socketDescriptor;
-    static int isConnected = 0;
-    struct sockaddr_in serverAddress;
-    struct hostent *hostInfo;
-    char buf[LINE_ARRAY_SIZE], c;
+typedef boost::shared_ptr<tcp::socket> socket_ptr;
+typedef boost::shared_ptr<string> string_ptr;
+typedef boost::shared_ptr< queue<string_ptr> > messageQueue_ptr;
 
-    struct sigaction sa;
-    // Setup the sighub handler
-    sa.sa_handler = &handle_signal;
+io_service service;
+messageQueue_ptr messageQueue(new queue<string_ptr>);
+tcp::endpoint ep(ip::address::from_string(SERVER_IP), SERVER_PORT);
+const int inputSize = 256;
+string_ptr promptCpy;
 
-    // Restart the system call, if at all possible
-    sa.sa_flags = SA_RESTART;
+// Function Prototypes
+bool isOwnMessage(string_ptr);
+void displayLoop(socket_ptr);
+void inboundLoop(socket_ptr, string_ptr);
+void writeLoop(socket_ptr, string_ptr);
+string* buildPrompt();
+// End of Function Prototypes
 
-    // Block every signal during the handler
-    sigfillset(&sa.sa_mask);
+int main(int argc, char** argv)
+{
+    try
+    {
+        boost::thread_group threads;
+        socket_ptr sock(new tcp::socket(service));
 
-    // Intercept SIGHUP and SIGINT
-    if (sigaction(SIGHUP, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGHUP"); // Should not happen
+        string_ptr prompt( buildPrompt() );
+        promptCpy = prompt;
+
+        sock->connect(ep);
+
+        cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
+
+        threads.create_thread(boost::bind(displayLoop, sock));
+        threads.create_thread(boost::bind(inboundLoop, sock, prompt));
+        threads.create_thread(boost::bind(writeLoop, sock, prompt));
+
+        threads.join_all();
+    }
+    catch(std::exception& e)
+    {
+        cerr << e.what() << endl;
     }
 
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGINT"); // Should not happen
-    }
-
-    if (sigaction(SIGTERM, &sa, NULL) == -1) {
-        perror("Error: cannot handle SIGTERM"); // Should not happen
-    }
-
-    if(checkInternetAccess() < 0){
-        exit(-1);
-    }
-    
-    // gethostbyname() takes a host name or ip address in "numbers and
-    // dots" notation, and returns a pointer to a hostent structure,
-    // which we'll need later.  It's not important for us what this
-    // structure is actually composed of.
-    hostInfo = gethostbyname(SERVER_IP);
-    if (hostInfo == NULL) {
-        cout << "problem interpreting host: " << SERVER_IP << "\n";
-        exit(1);
-    }
-    
-    // Create a socket.  "AF_INET" means it will use the IPv4 protocol.
-    // "SOCK_STREAM" means it will be a reliable connection (i.e., TCP;
-    // for UDP use SOCK_DGRAM), and I'm not sure what the 0 for the last
-    // parameter means, but it seems to work.
-    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if (socketDescriptor < 0) {
-        cerr << "cannot create socket\n";
-        exit(1);
-    }
-    
-    // Connect to server.  First we have to set some fields in the
-    // serverAddress structure.  The system will assign me an arbitrary
-    // local port that is not in use.
-    serverAddress.sin_family = hostInfo->h_addrtype;
-    memcpy((char *) &serverAddress.sin_addr.s_addr,
-           hostInfo->h_addr_list[0], hostInfo->h_length);
-    serverAddress.sin_port = htons(SERVER_PORT);
-				
-    if (connect(socketDescriptor,
-                (struct sockaddr *) &serverAddress,
-                sizeof(serverAddress)) < 0) {
-        cerr << "cannot connect\n";
-        exit(1);
-    }
-    
-    while (1) {
-        // Send the line to the server.
-        if(isConnected == 0){
-            if (send(socketDescriptor, "Device", strlen("Device")+1, 0) < 0) { // there was +1 at size
-            cerr << "cannot send data ";
-            close(socketDescriptor);
-            exit(1);
-            }
-            ++isConnected;
-
-            if (recv(socketDescriptor, buf, MAX_LINE, 0) < 0) { // takes "DeviceOK" from server
-                cerr << "didn't get response from server?";
-                close(socketDescriptor);
-                exit(1);
-            }
-        }
-
-        if (send(socketDescriptor,&message, 1, 0) < 0) { // there was +1 at size
-            cerr << "cannot send data ";
-            close(socketDescriptor);
-            exit(1);
-        }
-
-        // Zero out the buffer.
-        memset(buf, 0x0, LINE_ARRAY_SIZE);
-        
-        // Read the modified line back from the server.
-        if (recv(socketDescriptor, buf, MAX_LINE, 0) < 0) {
-            cerr << "didn't get response from server?";
-            close(socketDescriptor);
-            exit(1);
-        }
-        pthread_cond_signal(&calculateSignal);
-    
-    }
-    
-    close(socketDescriptor);
-    return 0;
+    puts("Press any key to continue...");
+    getc(stdin);
+    return EXIT_SUCCESS;
 }
 
-void handle_signal(int signal) {
+string* buildPrompt()
+{
+    const int inputSize = 256;
+    char inputBuf[inputSize] = {0};
+    char nameBuf[inputSize] = {0};
+    string* prompt = new string(": ");
 
-    // Find out which signal we're handling
-    switch (signal) {
-        case SIGHUP:
-            cerr << "Caught SIGHUP exiting now" << endl;
-            break;
-        case SIGINT:
-            cerr << "Caught SIGINT, exiting now" << endl;
-            break;
-        case SIGTERM:
-            cerr << "Caught SIGTERM exiting now" << endl;
-        default:
-            cerr << "Caught wrong signal" << signal << endl;
-            return;
+    //cout << "Please input a new username: ";
+    //cin.getline(nameBuf, inputSize);
+    #ifdef DEVICE
+        strcpy(nameBuf,DEVICE_NAME);
+    #endif
+
+    #ifdef INTERFACE
+        strcpy(nameBuf,INTERFACE_NAME);
+    #endif
+    *prompt = (string)nameBuf + *prompt;
+    boost::algorithm::to_lower(*prompt);
+
+    return prompt;
+}
+
+void inboundLoop(socket_ptr sock, string_ptr prompt)
+{
+    int bytesRead = 0;
+    char readBuf[1024] = {0};
+
+    for(;;)
+    {
+        if(sock->available())
+        {
+            bytesRead = sock->read_some(buffer(readBuf, inputSize));
+            string_ptr msg(new string(readBuf, bytesRead));
+
+            messageQueue->push(msg);
+        }
+
+        boost::this_thread::sleep( boost::posix_time::millisec(1000));
     }
-    exit(-1);
+}
+
+void writeLoop(socket_ptr sock, string_ptr prompt)
+{
+    char inputBuf[inputSize] = {0};
+    string inputMsg;
+
+    for(;;)
+    {
+        cin.getline(inputBuf, inputSize);
+        inputMsg = *prompt + (string)inputBuf + '\n';
+
+        if(!inputMsg.empty())
+        {
+            sock->write_some(buffer(inputMsg, inputSize));
+        }
+
+        if(inputMsg.find("exit") != string::npos)
+            exit(1);
+
+        inputMsg.clear();
+        memset(inputBuf, 0, inputSize);
+    }
+}
+
+void displayLoop(socket_ptr sock)
+{
+    for(;;)
+    {
+        if(!messageQueue->empty())
+        {
+            if(!isOwnMessage(messageQueue->front()))
+            {
+                cout << "\n" + *(messageQueue->front());
+            }
+
+            messageQueue->pop();
+        }
+
+        boost::this_thread::sleep( boost::posix_time::millisec(1000));
+    }
+}
+
+bool isOwnMessage(string_ptr message)
+{
+    if(message->find(*promptCpy) != string::npos)
+        return true;
+    else
+        return false;
 }
