@@ -1,17 +1,20 @@
-CC= g++
-CFLAGS= -Wall
+CC= g++ 
+CFLAGS= -Wall -std=c++11
 LDFLAGS=
 SOURCES= *.cpp *.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE= $(SOURCES)
 
-all: server client
+all: server clientDevice clientInterface
 
 server:
-	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< -fopenmp -o $@
+	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< -lboost_system -lboost_date_time -lboost_thread -o $@
 
-client:
-	$(CC) $(CFLAGS) client.cpp internetAccess.cpp $< -o $@
+clientDevice:
+	$(CC) $(CFLAGS) -D DEVICE client.cpp internetAccess.cpp $< -lboost_system -lboost_date_time -lboost_thread -o $@
+
+clientInterface:
+	$(CC) $(CFLAGS) -D INTERFACE client.cpp internetAccess.cpp $< -lboost_system -lboost_date_time -lboost_thread -o $@
 
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
@@ -20,4 +23,4 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	-rm -f *.o server client
+	-rm -f *.o server clientDevice clientInterface
