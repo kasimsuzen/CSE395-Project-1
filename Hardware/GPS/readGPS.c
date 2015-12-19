@@ -5,8 +5,8 @@
 
 void readGPSData(char * buffer){
 	int i, n=0,
-      cport_nr=22,        /* /dev/ttyAMA0
-      bdrate=9600;       /* 9600 baud */
+      cport_nr=22,        // /dev/ttyAMA0
+      bdrate=9600;       // 9600 baud
 
   unsigned char buf[4096];
 
