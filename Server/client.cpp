@@ -32,7 +32,7 @@ void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
 // End of Function Prototypes
 
-int main(int argc, char** argv)
+void* clientCube(void *p)
 {
     try
     {
