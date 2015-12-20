@@ -4,39 +4,46 @@
 #include "rs232.h"
 
 void readGPSData(char * buffer){
-	int i, n,cport_nr=22,bdrate=9600; // 22 stands for /dev/ttyAMA0 for linux systems
-	unsigned char buf[4095];
-	char mode[]={'8','N','1',0};
+	int i, n=0,
+      cport_nr=22,        // /dev/ttyAMA0
+      bdrate=9600;       // 9600 baud
 
-	for(i=0; i < 4095;++i){
-		buf[i]= '\0';
-	}
+  unsigned char buf[4096];
 
-	if(RS232_OpenComport(cport_nr, bdrate, mode))
-	{
-		printf("Can not open comport\n");
-		exit(-1);
-	}
+  char mode[]={'8','N','1',0};
 
-	n = RS232_PollComport(cport_nr, buf, 4095);
 
-	if(n > 0)
-	{
-		buf[n] = '\0';   /* always put a "null" at the end of a string! */
+  if(RS232_OpenComport(cport_nr, bdrate, mode))
+  {
+    printf("Can not open comport\n");
 
-		for(i=0; i < n; i++)
-		{
-			if(buf[i] < 32)  /* replace unreadable control-codes by dots */
-			{
-			buf[i] = '.';
-			}
-		}
+    exit(-1);
+  }
 
-		printf("%s\n", (char *)buf);
-	}
+  while(n < 90)
+  {
+    n = RS232_PollComport(cport_nr, buf, 4095);
 
+    if(n > 0)
+    {
+      buf[n] = 0;   /* always put a "null" at the end of a string! */
+
+      /*for(i=0; i < n; i++)
+      {
+        if(buf[i] < 32)  // replace unreadable control-codes by dots
+        {
+          buf[i] = '.';
+        }
+      }*/
+
+    }
+    usleep(1000000);  /* sleep for 100 milliSeconds */
+}
+    
+    
 	for(i=0; buf[i] != '\0';++i)
 		buffer[i] = buf[i];
-	buffer[n]='\0';
+	buffer[n]='\n';
+	buffer[n+1]='\0';
+	RS232_CloseComport(cport_nr);
 }
-

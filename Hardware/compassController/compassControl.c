@@ -66,7 +66,7 @@ void * headingAngle(void * p)
         if(heading < 0)
     		heading += 360;
 
-    	//printf("heading %7.3f \t ", heading);
+    	//printf("heading %7.3f \t \n", heading);
     	message.heading = heading;
         pthread_mutex_unlock(&mutex);
     }
