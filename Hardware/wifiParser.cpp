@@ -59,8 +59,8 @@ bool parseWifi (string arg1, string* MACAdress, int* signalStrength){
     return false;
 }
 
+int returnValueOfArea(){
 
-int main(int argc, char **argv) {
     int signalStrength=0;
     int ESSID=0;
     int nearestArea=0;
@@ -84,15 +84,6 @@ int main(int argc, char **argv) {
                 ++sumOfApSignals[ESSID-1][SIGNAL_SEEK_COUNT];
             }
 
-            /*
-            if(parseWifi(line, &MACAdress, &signalStrength)){
-
-                node.push_back(signalStrength);
-
-                cout << "MAC = " << MACAdress << "\t" << "Signal Strength = "<< signalStrength << endl;
-            }
-            */
-
         }
 
         myfile.close();
@@ -105,7 +96,6 @@ int main(int argc, char **argv) {
         } else {
             avgOfApSignals[i]= -100;
         }
-        cout << "Area_" << i+1 << " :" <<  avgOfApSignals[i] << endl;
     }
 
     // Get max_element of average_signal_strengts_of_defined_areas
@@ -114,11 +104,5 @@ int main(int argc, char **argv) {
     // Get index of mostStrengthSignal, that means which area we include on the map
     nearestArea = 1 + std::distance(avgOfApSignals, std::find(avgOfApSignals, avgOfApSignals + AREA_COUNT, mostStrengtSignal));
 
-    //
-    cout << "Most strength signal is : " <<  mostStrengtSignal << endl;
-
-    cout << "Nearest area is :" << nearestArea << endl;
-
-    return 0;
-
+    return nearestArea;
 }
