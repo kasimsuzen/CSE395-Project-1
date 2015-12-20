@@ -3,7 +3,7 @@
 #include <map>
 #include <queue>
 #include <cstdlib>
-
+#include "network.h"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -20,7 +20,7 @@ typedef boost::shared_ptr< list<socket_ptr> > clientList_ptr;
 typedef boost::shared_ptr< queue<clientMap_ptr> > messageQueue_ptr;
 
 io_service service;
-tcp::acceptor acceptor(service, tcp::endpoint(tcp::v4(), 8001));
+tcp::acceptor acceptor(service, tcp::endpoint(tcp::v4(), SERVER_PORT));
 boost::mutex mtx;
 clientList_ptr clientList(new list<socket_ptr>);
 messageQueue_ptr messageQueue(new queue<clientMap_ptr>) ;

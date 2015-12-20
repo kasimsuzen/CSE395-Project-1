@@ -5,16 +5,25 @@ SOURCES= *.cpp *.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE= $(SOURCES)
 
-all: server clientDevice clientInterface
+all: serverG1 serverG8 clientDeviceG1 clientInterfaceG1 clientDeviceG8 clientInterfaceG8
 
-server:
-	$(CC) $(CFLAGS) server.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+serverG1:
+	$(CC) $(CFLAGS) -D GROUP1 server.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
 
-clientDevice:
-	$(CC) $(CFLAGS) -D DEVICE client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+serverG8:
+	$(CC) $(CFLAGS) -D GROUP8 server.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
 
-clientInterface:
-	$(CC) $(CFLAGS) -D INTERFACE client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+clientDeviceG1:
+	$(CC) $(CFLAGS) -D DEVICE -D GROUP1 client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+
+clientInterfaceG1:
+	$(CC) $(CFLAGS) -D INTERFACE -D GROUP1 client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+
+clientDeviceG8:
+	$(CC) $(CFLAGS) -D DEVICE -D GROUP8 client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
+
+clientInterfaceG8:
+	$(CC) $(CFLAGS) -D INTERFACE -D GROUP8 client.cpp internetAccess.cpp $< $(LDFLAGS) -o $@
 
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@

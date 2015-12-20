@@ -31,7 +31,9 @@ void inboundLoop(socket_ptr, string_ptr);
 void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
 // End of Function Prototypes
-
+int main(){
+    
+}
 void* clientCube(void *p)
 {
     try
