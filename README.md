@@ -5,13 +5,14 @@ Things to do before compile and run
 * Install WiringPi library http://wiringpi.com/
 * Open shell access for serial from raspi-config
 * Open shell access for i2c from raspi-config
+* Install Boost library
 
-Raspberry Pin Layout
+Raspberry B+ Pin Layout
 
 |    Description | Pin Number | Pin Number | Description    |
 |---------------:|------------|------------|----------------|
 | GPS VCC        | 1          | 2          | Servo 0 VCC ?  |
-| Compass SDA    | 3          | 4          | Servo 0 VCC ?  |
+| Compass SDA    | 3          | 4          | Servo 1 VCC ?  |
 | Compass SCL    | 5          | 6          | Servo 0 Ground |
 | Servo 0 PWM    | 7          | 8          | GPS RX         |
 | GPS Ground     | 9          | 10         | GPS TX         |
