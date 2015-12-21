@@ -32,7 +32,7 @@ void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
 // End of Function Prototypes
 int main(){
-    
+    clientCube(NULL);
 }
 void* clientCube(void *p)
 {
@@ -108,23 +108,26 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
     char inputBuf[inputSize] = {0};
-    string inputMsg;
 
     for(;;)
     {
-        cin.getline(inputBuf, inputSize);
-        inputMsg = *prompt + (string)inputBuf + '\n';
+        //cin.getline(inputBuf, inputSize);
+       // inputMsg = *prompt + (string)inputBuf + '\n';
+	mainMutex.lock();
+	clientMessage = *prompt + clientMessage;
 
-        if(!inputMsg.empty())
+        if(!clientMessage.empty())
         {
-            sock->write_some(buffer(inputMsg, inputSize));
+            sock->write_some(buffer(clientMessage, inputSize));
         }
 
-        if(inputMsg.find("exit") != string::npos)
-            exit(1);
-
-        inputMsg.clear();
-        memset(inputBuf, 0, inputSize);
+        if(clientMessage.find("exit") != string::npos){
+            mainMutex.unlock();
+		exit(1);
+	}
+        clientMessage.clear();
+        memset(inputBuf, 0, clientMessage);
+	mainMutex.unlock();
     }
 }
 
@@ -137,8 +140,11 @@ void displayLoop(socket_ptr sock)
             if(!isOwnMessage(messageQueue->front()))
             {
                 cout << "\n" + *(messageQueue->front());
+		mainMutex.lock();
+		interfaceMessage.insert(0,*(messageQueue->front()));
+		mainMutex.unlock();
             }
-
+		
             messageQueue->pop();
         }
 
