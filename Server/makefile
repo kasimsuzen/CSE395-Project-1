@@ -1,6 +1,6 @@
 CC= g++ 
 CFLAGS= -Wall -std=c++11
-LDFLAGS= -lboost_system -lboost_date_time -lboost_thread
+LDFLAGS= -lboost_system -lboost_date_time -lboost_thread -lm
 SOURCES= *.cpp *.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE= $(SOURCES)
