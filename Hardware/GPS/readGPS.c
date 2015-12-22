@@ -20,29 +20,31 @@ void readGPSData(char * buffer){
     exit(-1);
   }
 
-  while(n < 90)
+  while(n < 512)
   {
-    n = RS232_PollComport(cport_nr, buf, 4095);
+    n += RS232_PollComport(cport_nr, &buf[n], 4095);
 
     if(n > 0)
     {
       buf[n] = 0;   /* always put a "null" at the end of a string! */
 
-      /*for(i=0; i < n; i++)
+      for(i=0; i < n; i++)
       {
         if(buf[i] < 32)  // replace unreadable control-codes by dots
         {
           buf[i] = '.';
         }
-      }*/
-
+      }
     }
-    usleep(1000000);  /* sleep for 100 milliSeconds */
+	
 }
     
-    
-	for(i=0; buf[i] != '\0';++i)
+
+	for(i=0; buf[i] != '\0';++i){
 		buffer[i] = buf[i];
+		if(buffer[i] == '$')
+			buffer[i] = '\n';
+	}
 	buffer[n]='\n';
 	buffer[n+1]='\0';
 	RS232_CloseComport(cport_nr);

@@ -13,6 +13,7 @@
 #include "GPS.h"
 #include <pthread.h>
 #include "../hardware.h"
+#include <unistd.h>
 
 using namespace std;
 
@@ -38,11 +39,10 @@ void parseGPGGA(string arg1, float* latitude, float* longitude) {
 	if (sep.size() >= 14) {
 		if (0 <= strstr(sep[0].c_str(), "GPGGA")) {
 
-			if (sep[6]== "2") {
+			if (sep[6]== "2" || sep[6] == "1") {
 
-				*latitude = atof(sep[2].c_str());
-
-				*longitude = atof(sep[4].c_str());
+				*latitude = (int)(atof(sep[2].c_str()))/100 + strtod(&sep[2].c_str()[2],NULL)/60.0;
+				*longitude = (int)(atof(sep[4].c_str()))/100 + strtod(&sep[4].c_str()[3],NULL)/60.0;
 			}
 		}
 	}
@@ -54,22 +54,18 @@ void * parseGPSData(void * p) {
 	float latitude,longitude;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";
 	while(1){
-		pthread_mutex_lock(&mutex);
-		pthread_cond_wait(&calculateSignal, &mutex);
 		
 		memset(buffer,'\0',4095);
 		readGPSData(buffer);
-
 		bufferptr = strtok(buffer,"\n");
 		while(bufferptr != NULL)
 		{
-			printf("%s\n",bufferptr);
+			mainMutex.lock();
 			parseGPGGA(bufferptr,&latitude,&longitude);
-			bufferptr = strtok(buffer,"\n");
+			mainMutex.unlock();
+			bufferptr = strtok(NULL,"\n");
 		}
-		cout << "latitude = " << latitude << endl << "longitude = " << longitude;
-		message.latitude = latitude;
-		message.longitude = longitude;
-		pthread_mutex_unlock(&mutex);
+		printf("latitude: %f longitude: %f\n",latitude,longitude);
+
 	}
 }
