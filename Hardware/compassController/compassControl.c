@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <pthread.h>
 #include <sys/ioctl.h>
 #include "HMC5883L.h"
 #include "../hardware.h"
@@ -28,13 +27,11 @@
 
 int file;
 
-void * headingAngle(void * p)
+double headingAngle()
 {
 	char filename[20];
 	int magRaw[3];
-    while(1){
-        pthread_mutex_lock(&mutex);
-        pthread_cond_wait(&calculateSignal,&mutex);
+    
     	//Open the i2c bus
     	sprintf(filename, "/dev/i2c-%d", 1);
     	file = open(filename, O_RDWR);
@@ -67,9 +64,8 @@ void * headingAngle(void * p)
     		heading += 360;
 
     	//printf("heading %7.3f \t \n", heading);
-    	message.heading = heading;
-        pthread_mutex_unlock(&mutex);
-    }
+    	return heading;
+    
 }
 
 void writeMagReg(uint8_t reg, uint8_t value)

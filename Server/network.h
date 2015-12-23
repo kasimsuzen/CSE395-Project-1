@@ -1,6 +1,13 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#include <string>
+#include <boost/thread.hpp>
+using namespace std;
+boost::mutex mainMutex;
+string interfaceMessage;
+string clientMessage;
+
 #define MAX_MSG 100
 #define MAX_LINE 100
 #define LINE_ARRAY_SIZE (MAX_MSG+1)
