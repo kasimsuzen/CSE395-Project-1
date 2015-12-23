@@ -4,7 +4,7 @@
 #define MAX_MSG 100
 #define MAX_LINE 100
 #define LINE_ARRAY_SIZE (MAX_MSG+1)
-#define SERVER_IP "46.101.112.39"
+#define SERVER_IP "46.101.238.174"
 #define THREAD_NUMBER 2
 #define DEVICE_NAME "Device"
 #define INTERFACE_NAME "Interface"
