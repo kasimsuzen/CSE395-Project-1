@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/MyFiles">
+    <qresource prefix="/files">
         <file>KatPlaniPP.jpg</file>
     </qresource>
 </RCC>

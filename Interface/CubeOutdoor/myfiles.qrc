@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/Map">
+        <file>outdoor_google1.png</file>
+    </qresource>
+</RCC>

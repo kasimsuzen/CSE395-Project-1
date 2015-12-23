@@ -1,9 +1,9 @@
 #include "shortestpath.h"
 
 void ShortestPath::DijkstraComputePaths(vertex_t source,
-                          const adjacency_list_t &adjacency_list,
-                          std::vector<weight_t> &min_distance,
-                          std::vector<vertex_t> &previous)
+                                        const adjacency_list_t &adjacency_list,
+                                        std::vector<weight_t> &min_distance,
+                                        std::vector<vertex_t> &previous)
 {
     int n = adjacency_list.size();
     min_distance.clear();
@@ -21,7 +21,7 @@ void ShortestPath::DijkstraComputePaths(vertex_t source,
         vertex_queue.erase(vertex_queue.begin());
 
         // Visit each edge exiting u
-    const std::vector<neighbor> &neighbors = adjacency_list[u];
+        const std::vector<neighbor> &neighbors = adjacency_list[u];
         for (std::vector<neighbor>::const_iterator neighbor_iter = neighbors.begin();
              neighbor_iter != neighbors.end();
              neighbor_iter++)
@@ -29,14 +29,14 @@ void ShortestPath::DijkstraComputePaths(vertex_t source,
             vertex_t v = neighbor_iter->target;
             weight_t weight = neighbor_iter->weight;
             weight_t distance_through_u = dist + weight;
-        if (distance_through_u < min_distance[v]) {
-            vertex_queue.erase(std::make_pair(min_distance[v], v));
+            if (distance_through_u < min_distance[v]) {
+                vertex_queue.erase(std::make_pair(min_distance[v], v));
 
-            min_distance[v] = distance_through_u;
-            previous[v] = u;
-            vertex_queue.insert(std::make_pair(min_distance[v], v));
+                min_distance[v] = distance_through_u;
+                previous[v] = u;
+                vertex_queue.insert(std::make_pair(min_distance[v], v));
 
-        }
+            }
 
         }
     }
@@ -44,7 +44,7 @@ void ShortestPath::DijkstraComputePaths(vertex_t source,
 
 
 std::list<vertex_t> ShortestPath::DijkstraGetShortestPathTo(
-    vertex_t vertex, const std::vector<vertex_t> &previous)
+        vertex_t vertex, const std::vector<vertex_t> &previous)
 {
     std::list<vertex_t> path;
     for ( ; vertex != -1; vertex = previous[vertex])
