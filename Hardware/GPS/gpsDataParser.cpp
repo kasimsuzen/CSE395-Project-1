@@ -14,6 +14,10 @@
 #include <pthread.h>
 #include "../hardware.h"
 #include <unistd.h>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+
+extern boost::mutex mainMutex;
 
 using namespace std;
 
@@ -49,7 +53,7 @@ void parseGPGGA(string arg1, float* latitude, float* longitude) {
 
 }
 
-void * parseGPSData(void * p) {
+int parseGPSData() {
 	char buffer[4096], *bufferptr;
 	float latitude,longitude;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";

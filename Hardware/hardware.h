@@ -1,8 +1,8 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
-	boost::mutex mainMutex;
 	void servoController(int destinationAngle,int isFinished);
-
+	double headingAngle();
+	int parseGPSData();
 	extern float latitude,longitude,heading;
 
 #endif

@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdlib>
 #include "network.h"
+#include "../Hardware/hardware.h"
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
@@ -18,6 +19,9 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 typedef boost::shared_ptr<string> string_ptr;
 typedef boost::shared_ptr< queue<string_ptr> > messageQueue_ptr;
 
+extern string interfaceMessage;
+extern string recvMessage;
+extern boost::mutex mainMutex;
 io_service service;
 messageQueue_ptr messageQueue(new queue<string_ptr>);
 tcp::endpoint ep(ip::address::from_string(SERVER_IP), SERVER_PORT);
@@ -31,10 +35,10 @@ void inboundLoop(socket_ptr, string_ptr);
 void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
 // End of Function Prototypes
-int main(){
+/*int main(){
     clientCube(NULL);
-}
-void* clientCube(void *p)
+}*/
+int clientCube()
 {
     try
     {
@@ -108,25 +112,27 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
     char inputBuf[inputSize] = {0};
+	string inputMsg;
 
     for(;;)
     {
-        //cin.getline(inputBuf, inputSize);
-       // inputMsg = *prompt + (string)inputBuf + '\n';
+        cin.getline(inputBuf, inputSize);
+        inputMsg = *prompt + (string)inputBuf + '\n';
 	mainMutex.lock();
-	clientMessage = *prompt + clientMessage;
-
-        if(!clientMessage.empty())
+	//recvMessage = *prompt + recvMessage;
+	
+        if(!recvMessage.empty())
         {
-            sock->write_some(buffer(clientMessage, inputSize));
+            sock->write_some(buffer(inputMsg, inputSize));
+		//sock->write_some(buffer(recvMessage, inputSize));
         }
 
-        if(clientMessage.find("exit") != string::npos){
+        if(recvMessage.find("exit") != string::npos){
             mainMutex.unlock();
 		exit(1);
 	}
-        clientMessage.clear();
-        memset(inputBuf, 0, clientMessage);
+        inputMsg.clear();
+	memset(inputBuf,0,inputSize);
 	mainMutex.unlock();
     }
 }

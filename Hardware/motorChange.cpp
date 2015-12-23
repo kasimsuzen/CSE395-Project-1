@@ -4,6 +4,9 @@
 #include <math.h>
 #include "hardware.h"
 #include <boost/thread.hpp>
+#include <boost/bind.hpp>
+
+extern boost::mutex mainMutex;
 
 using namespace std;
 
@@ -15,7 +18,8 @@ using namespace std;
 /*
 	microsecondValue = angle * 10 + MICROSECOND_TO_ANGLE;
 */
-
+void servoTurnUp(char command);
+int servoTurnRL(int destinationAngle,int currentAngle);
 
 void servoController(int destinationAngle,int isFinished){
 	if(isFinished == 1){
@@ -23,13 +27,13 @@ void servoController(int destinationAngle,int isFinished){
 	}
 	else{
 		servoTurnUp('c');
-		while(1 != servoTurnRL()); // Warning one line loop
+		//while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
 		servoTurnUp('f');
 	}
 }
 
 int servoTurnRL(int destinationAngle,int currentAngle){
-	int i,j,microsecondValue=0,n,k;
+	int n,k;
 	char temp1[50],temp2[50],temp3[50]={"us > //dev//servoblaster "};
 	n = currentAngle - destinationAngle;
 	k = 360 - abs(n);
@@ -54,14 +58,13 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 }
 
 void servoTurnUp(char command){
-	int i,j,microsecondValue=0;
 	char temp1[50],temp2[50],temp3[50]={"us > //dev//servoblaster "};
 	
-	if(messageFromServer.angleToEngine1 == 'c'){
-		sprintf(temp1,"echo %d=",0);
+	if(command == 'c'){
+		sprintf(temp1,"echo %d=",1);
 		sprintf(temp2,"%d",TURN_RIGHT);
 	}
-	else if(messageFromServer.angleToEngine2 == 'f'){
+	else if(command == 'f'){
 		sprintf(temp1,"echo %d=",1);
 		sprintf(temp2,"%d",TURN_LEFT);
 	}

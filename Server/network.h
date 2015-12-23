@@ -1,18 +1,11 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include <string>
-#include <boost/thread.hpp>
-using namespace std;
-boost::mutex mainMutex;
-string interfaceMessage;
-string clientMessage;
 
 #define MAX_MSG 100
 #define MAX_LINE 100
 #define LINE_ARRAY_SIZE (MAX_MSG+1)
-#define SERVER_IP "46.101.112.39"
-#define THREAD_NUMBER 2
+#define SERVER_IP "46.101.238.174"
 #define DEVICE_NAME "Device"
 #define INTERFACE_NAME "Interface"
 
@@ -25,6 +18,6 @@ string clientMessage;
 #endif
 
 int checkInternetAccess();
-void* clientCube(void *p);
+int clientCube();
 
 #endif

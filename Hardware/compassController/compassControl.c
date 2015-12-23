@@ -27,6 +27,11 @@
 
 int file;
 
+int main(){
+	while(1)
+		headingAngle();
+}
+
 double headingAngle()
 {
 	char filename[20];
@@ -63,7 +68,7 @@ double headingAngle()
         if(heading < 0)
     		heading += 360;
 
-    	//printf("heading %7.3f \t \n", heading);
+    	printf("heading %7.3f \t \n", heading);
     	return heading;
     
 }
