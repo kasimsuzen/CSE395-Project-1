@@ -19,7 +19,7 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 typedef boost::shared_ptr<string> string_ptr;
 typedef boost::shared_ptr< queue<string_ptr> > messageQueue_ptr;
 
-extern string interfaceMessage;
+extern string sendMessage;
 extern string recvMessage;
 extern boost::mutex mainMutex;
 io_service service;
@@ -147,7 +147,7 @@ void displayLoop(socket_ptr sock)
             {
                 cout << "\n" + *(messageQueue->front());
 		mainMutex.lock();
-		interfaceMessage.insert(0,*(messageQueue->front()));
+		sendMessage.insert(0,*(messageQueue->front()));
 		mainMutex.unlock();
             }
 		
