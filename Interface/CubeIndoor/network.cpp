@@ -37,14 +37,14 @@ int clientCube()
 {
     try
     {
-        //boost::thread_group threads;
+        boost::thread_group threads;
         socket_ptr sock(new tcp::socket(service));
 
-        //string_ptr prompt( buildPrompt() );
-        //promptCpy = prompt;
+        string_ptr prompt( buildPrompt() );
+        promptCpy = prompt;
 
         sock->connect(ep);
-        if(sock->write_some(buffer("InterfaceStart", 1024)) == 0)
+        /*if(sock->write_some(buffer("InterfaceStart", 1024)) == 0)
         {
 
             sock->shutdown(tcp::socket::shutdown_both);
@@ -61,14 +61,14 @@ int clientCube()
         sock->close();
 
         return 1;
+        */
+        cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
 
-        //cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
+        threads.create_thread(boost::bind(displayLoop, sock));
+        threads.create_thread(boost::bind(inboundLoop, sock, prompt));
+        threads.create_thread(boost::bind(writeLoop, sock, prompt));
 
-        //threads.create_thread(boost::bind(displayLoop, sock));
-        //threads.create_thread(boost::bind(inboundLoop, sock, prompt));
-        //hreads.create_thread(boost::bind(writeLoop, sock, prompt));
-
-        //threads.join_all();
+        threads.join_all();
     }
     catch(std::exception& e)
     {
@@ -106,17 +106,25 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 {
     int bytesRead = 0;
     char readBuf[1024] = {0};
-
+    cout << "once" << endl;
+    boost::system::error_code erc;
     for(;;)
     {
-        if(sock->available())
+        cout << "infinite loop at inboundloop" << endl;
+        if(!sock->available(erc))
         {
+            cout << "soc connected" << endl;
             bytesRead = sock->read_some(buffer(readBuf, inputSize));
             string_ptr msg(new string(readBuf, bytesRead));
 
             messageQueue->push(msg);
+            cout << "\n" + *(messageQueue->front());
         }
-
+        if(erc){
+            //error.message();
+            cout << erc.category().name() << ':' << erc.value() << " " << erc.message();
+            cout << "asd" <<sock->available();
+        }
         boost::this_thread::sleep( boost::posix_time::millisec(1000));
     }
 }
@@ -128,11 +136,14 @@ void writeLoop(socket_ptr sock, string_ptr prompt)
 
     for(;;)
     {
-        cin.getline(inputBuf, inputSize);
-        inputMsg = *prompt + (string)inputBuf + '\n';
-
+        cout << "infinite while at write" << endl;
+        //cin.getline(inputBuf, inputSize);
+        //inputMsg = *prompt + (string)inputBuf + '\n';
+        inputMsg = "Otomatik response\n";
+        cout << "yazdın baam " << inputMsg << endl;
         if(!inputMsg.empty())
         {
+            cout << "scokete attı" << endl;
             sock->write_some(buffer(inputMsg, inputSize));
         }
 
