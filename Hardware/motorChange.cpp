@@ -12,8 +12,8 @@ using namespace std;
 
 #define MICROSECOND_TO_ANGLE 700
 #define RL_CENTER 1600
-#define TURN_LEFT 2000
-#define TURN_RIGHT 1200
+#define TURN_LEFT 2400
+#define TURN_RIGHT 1000
 
 /*
 	microsecondValue = angle * 10 + MICROSECOND_TO_ANGLE;
@@ -27,27 +27,28 @@ void servoController(int destinationAngle,int isFinished){
 	}
 	else{
 		servoTurnUp('c');
-		//while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
+		while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
 		servoTurnUp('f');
 	}
 }
 
 int servoTurnRL(int destinationAngle,int currentAngle){
 	int n,k;
-	char temp1[50],temp2[50],temp3[50]={"us > //dev//servoblaster "};
+	char temp1[50]="echo 0=",temp2[50],temp3[50]={"us > //dev//servoblaster "};
 	n = currentAngle - destinationAngle;
 	k = 360 - abs(n);
-	if( abs(n) <= 15 && k <= 15){
-		sprintf(temp1,"echo %d=",0);
+	cout << "SERVO" << destinationAngle << " " << n << " " << k<< endl;
+	if( abs(n) <= 15 || k <= 15){
 		sprintf(temp2,"%d",RL_CENTER);
+		strcat(temp1,temp2);
+		strcat(temp1,temp3);
+		system(temp1);
 		return 1;
 	}
 	else if((n < k && n > 0) || (k < n &&  n < 0) ){
-		sprintf(temp1,"echo %d=",0);
 		sprintf(temp2,"%d",TURN_RIGHT);
 	}
 	else if((n < k && n < 0) && (k < n && n > 0)){
-		sprintf(temp1,"echo %d=",0);
 		sprintf(temp2,"%d",TURN_LEFT);
 		
 	}		
@@ -58,14 +59,12 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 }
 
 void servoTurnUp(char command){
-	char temp1[50],temp2[50],temp3[50]={"us > //dev//servoblaster "};
+	char temp1[50]="echo 1=",temp2[50],temp3[50]={"us > //dev//servoblaster "};
 	
 	if(command == 'c'){
-		sprintf(temp1,"echo %d=",1);
 		sprintf(temp2,"%d",TURN_RIGHT);
 	}
 	else if(command == 'f'){
-		sprintf(temp1,"echo %d=",1);
 		sprintf(temp2,"%d",TURN_LEFT);
 	}
 

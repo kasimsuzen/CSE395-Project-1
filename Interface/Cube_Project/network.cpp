@@ -1,15 +1,17 @@
+/*
+
 #include <iostream>
 #include <queue>
 #include <string>
 #include <cstdlib>
 #include "network.h"
-#include "../Hardware/hardware.h"
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include "mainwindow.h"
+#include <QDebug>
 using namespace std;
 using namespace boost;
 using namespace boost::asio;
@@ -19,9 +21,6 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 typedef boost::shared_ptr<string> string_ptr;
 typedef boost::shared_ptr< queue<string_ptr> > messageQueue_ptr;
 
-extern string sendMessage;
-extern string recvMessage;
-extern boost::mutex mainMutex;
 io_service service;
 messageQueue_ptr messageQueue(new queue<string_ptr>);
 tcp::endpoint ep(ip::address::from_string(SERVER_IP), SERVER_PORT);
@@ -35,45 +34,58 @@ void inboundLoop(socket_ptr, string_ptr);
 void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
 // End of Function Prototypes
-/*
-int main(){
-    clientCube();
-}*/
 
 int clientCube()
 {
     try
     {
-        boost::thread_group threads;
+        //boost::thread_group threads;
         socket_ptr sock(new tcp::socket(service));
 
-        string_ptr prompt( buildPrompt() );
-        promptCpy = prompt;
+        //string_ptr prompt( buildPrompt() );
+        //promptCpy = prompt;
 
         sock->connect(ep);
+        if(sock->write_some(buffer("InterfaceStart", 1024)) == 0)
+        {
 
-        cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
+            sock->shutdown(tcp::socket::shutdown_both);
+            sock->close();
+            return 0;
+        }
 
-        threads.create_thread(boost::bind(displayLoop, sock));
-        threads.create_thread(boost::bind(inboundLoop, sock, prompt));
-        threads.create_thread(boost::bind(writeLoop, sock, prompt));
+        char readBuf[1024] = {0};
+        sock->read_some(buffer(readBuf, 1024));
+        cout << readBuf << endl;
 
-        threads.join_all();
+
+        sock->shutdown(tcp::socket::shutdown_both);
+        sock->close();
+
+        return 1;
+
+        //cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
+
+        //threads.create_thread(boost::bind(displayLoop, sock));
+        //threads.create_thread(boost::bind(inboundLoop, sock, prompt));
+        //hreads.create_thread(boost::bind(writeLoop, sock, prompt));
+
+        //threads.join_all();
     }
     catch(std::exception& e)
     {
         cerr << e.what() << endl;
+        return -1;
     }
 
-    puts("Press any key to continue...");
-    getc(stdin);
-    return EXIT_SUCCESS;
+    //puts("Press any key to continue...");
+    //getc(stdin);
+    //return EXIT_SUCCESS;
 }
 
 string* buildPrompt()
 {
     const int inputSize = 256;
-    char inputBuf[inputSize] = {0};
     char nameBuf[inputSize] = {0};
     string* prompt = new string(": ");
 
@@ -114,28 +126,23 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
     char inputBuf[inputSize] = {0};
-	string inputMsg;
+    string inputMsg;
 
     for(;;)
     {
         cin.getline(inputBuf, inputSize);
         inputMsg = *prompt + (string)inputBuf + '\n';
-	mainMutex.lock();
-	//recvMessage = *prompt + recvMessage;
-	
+
         if(!inputMsg.empty())
         {
             sock->write_some(buffer(inputMsg, inputSize));
-		//sock->write_some(buffer(recvMessage, inputSize));
         }
 
-        if(recvMessage.find("exit") != string::npos){
-            mainMutex.unlock();
-		exit(1);
-	}
+        if(inputMsg.find("exit") != string::npos)
+            exit(1);
+
         inputMsg.clear();
-	memset(inputBuf,0,inputSize);
-	mainMutex.unlock();
+        memset(inputBuf, 0, inputSize);
     }
 }
 
@@ -148,11 +155,8 @@ void displayLoop(socket_ptr sock)
             if(!isOwnMessage(messageQueue->front()))
             {
                 cout << "\n" + *(messageQueue->front());
-		mainMutex.lock();
-		sendMessage.insert(0,*(messageQueue->front()));
-		mainMutex.unlock();
             }
-		
+
             messageQueue->pop();
         }
 
@@ -167,3 +171,4 @@ bool isOwnMessage(string_ptr message)
     else
         return false;
 }
+*/

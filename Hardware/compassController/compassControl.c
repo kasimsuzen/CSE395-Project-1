@@ -26,11 +26,11 @@
 #include "compass.h"
 
 int file;
-
+/*
 int main(){
 	while(1)
 		headingAngle();
-}
+}*/
 
 double headingAngle()
 {
