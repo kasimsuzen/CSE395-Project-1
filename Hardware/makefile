@@ -2,11 +2,11 @@ CC= g++
 CFLAGS= -c -Wall -std=c++11 -D GROUP8 -D DEVICE
 LDFLAGS= -lm -lboost_system -lboost_date_time -lboost_thread -lpthread -lstdc++
 SOURCES=
-OBJECTS= build/gpsDataParser.o build/readGPS.o build/rs232.o build/motorChange.o build/compassControl.o build/hardwareController.o build/client.o 
+OBJECTS= build/gpsDataParser.o build/readGPS.o build/rs232.o build/motorChange.o build/compassControl.o build/hardwareController.o build/client.o build/wifiRaspberry.o
 EXECUTABLE= hard
 
 all: GPS Servo Compass Hardware Client
-	
+	mv gpsDataParser.o readGPS.o rs232.o motorChange.o compassControl.o hardwareController.o client.o wifiRaspberry.o build/
 Link:
 	$(CC) $(OBJECTS) $(LDFLAGS) -o hard
 
@@ -24,6 +24,9 @@ Hardware:
 
 Client:
 	$(CC) $(CFLAGS) ../Server/client.cpp
+
+Wifi:
+	$(CC) $(CFLAGS) wifiRaspberry.cpp
 
 clean:
 	-rm -f *.o core *.core $(EXECUTABLE)
