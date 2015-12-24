@@ -5,12 +5,15 @@ SOURCES=
 OBJECTS= build/gpsDataParser.o build/readGPS.o build/rs232.o build/motorChange.o build/compassControl.o build/hardwareController.o build/client.o 
 EXECUTABLE= hard
 
-all: GPS Servo Compass Hardware Client
+all: Gps Servo Compass Hardware Client Move Link
 	
+Move:
+	mv gpsDataParser.o readGPS.o rs232.o motorChange.o compassControl.o hardwareController.o client.o build/
+
 Link:
 	$(CC) $(OBJECTS) $(LDFLAGS) -o hard
 
-GPS: 
+Gps:
 	$(CC) $(CFLAGS) GPS/gpsDataParser.cpp GPS/readGPS.c GPS/rs232.c 
 
 Servo:
