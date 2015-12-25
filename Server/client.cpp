@@ -114,26 +114,27 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
     char inputBuf[inputSize] = {0};
-	string inputMsg;
 
     for(;;)
     {
-        cin.getline(inputBuf, inputSize);
-        inputMsg = *prompt + (string)inputBuf + '\n';
+        //cin.getline(inputBuf, inputSize);
+        //inputMsg = *prompt + (string)inputBuf + '\n';
 	mainMutex.lock();
-	//recvMessage = *prompt + recvMessage;
 	
-        if(!inputMsg.empty())
+	
+        if(!sendMessage.empty())
         {
-            sock->write_some(buffer(inputMsg, inputSize));
-		//sock->write_some(buffer(recvMessage, inputSize));
+		sendMessage = *prompt + sendMessage + '\n';
+		cout << sendMessage << sendMessage.empty() << endl;
+            //sock->write_some(buffer(inputMsg, inputSize));
+		sock->write_some(buffer(sendMessage, inputSize));
         }
 
-        if(recvMessage.find("exit") != string::npos){
+        if(sendMessage.find("exit") != string::npos){
             mainMutex.unlock();
 		exit(1);
 	}
-        inputMsg.clear();
+        sendMessage.clear();
 	memset(inputBuf,0,inputSize);
 	mainMutex.unlock();
     }
@@ -149,7 +150,7 @@ void displayLoop(socket_ptr sock)
             {
                 cout << "\n" + *(messageQueue->front());
 		mainMutex.lock();
-		sendMessage.insert(0,*(messageQueue->front()));
+		recvMessage.insert(0,*(messageQueue->front()));
 		mainMutex.unlock();
             }
 		

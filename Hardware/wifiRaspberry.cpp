@@ -6,23 +6,19 @@
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
-
+#include "hardware.h"
 //smart
 
 
 using namespace std;
 
 int averageVector(const vector<int> &values);
-int findLocal(string filename);
+
 int calculateNearest(const vector< vector< int> > values);
-vector<string> split(string str, char delimiter);
-
-
+/*
 int main(int argc, char const *argv[])
 {
-
 	char input;
-	
 	while(1)
 	{
 		cout << "enter your input s>>cont.  -- q>>quit" << endl;
@@ -33,24 +29,9 @@ int main(int argc, char const *argv[])
 			break;
 	}
 	return 0;
-}
+}*/
 
-vector<string> split(string str, char delimiter) {
-    vector<string> internal;
-    stringstream ss(str); // Turn the string into a stream.
-    string tok;
-    
-    while(getline(ss, tok, delimiter)) {
-        internal.push_back(tok);
-    }
-    
-    return internal;
-}
-
-
-
-
-int findLocal(string filename)
+int findLocal()
 {
     string temp;
     int counter = 0;
@@ -78,7 +59,7 @@ int findLocal(string filename)
 	while(fgets(path, sizeof(path)-1, fp) != NULL)
   {	
     	string temp(path);
-      cout << temp;
+      //cout << temp;
 
 			if(strlen(path) > 0 && temp[0] == 'E')
 			{

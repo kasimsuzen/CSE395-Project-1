@@ -11,13 +11,8 @@
 #include <fstream>
 #include <cstring>
 #include "GPS.h"
-#include <pthread.h>
 #include "../hardware.h"
 #include <unistd.h>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-
-extern boost::mutex mainMutex;
 
 using namespace std;
 
@@ -53,23 +48,25 @@ void parseGPGGA(string arg1, float* latitude, float* longitude) {
 
 }
 
-int parseGPSData() {
+int parseGPSData(float * latitude,float* longitude,int limit/*=1*/) {
 	char buffer[4096], *bufferptr;
-	float latitude,longitude;
+	float tempLat=*latitude,tempLong=*longitude;
+	int count=limit;
 	string line = "$GPGGA,092750.000,5321.6802,N,00630.3372,W,2,8,1.03,61.7,M,55.2,M,,*76";
-	while(1){
+	while(count > 0){
 		
 		memset(buffer,'\0',4095);
 		readGPSData(buffer);
+		//cout << buffer << endl << tempLat << tempLong << endl;
 		bufferptr = strtok(buffer,"\n");
 		while(bufferptr != NULL)
 		{
-			mainMutex.lock();
-			parseGPGGA(bufferptr,&latitude,&longitude);
-			mainMutex.unlock();
+			parseGPGGA(bufferptr,latitude,longitude);
 			bufferptr = strtok(NULL,"\n");
 		}
-		printf("latitude: %f longitude: %f\n",latitude,longitude);
-
+		if(tempLat != *latitude || *longitude != tempLong)
+			break;
+		if(limit != 1)
+			--count;
 	}
 }

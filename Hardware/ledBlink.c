@@ -1,4 +1,4 @@
-#include <WiringPi.h>
+#include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,27 +9,25 @@
 
 int ledErrorOutput(int errorCode){
 	
-	if(WiringPiSetup() == -1)
+	if(wiringPiSetup() == -1)
 		return -1;
 	
 	pinMode(PIN_1, OUTPUT);
 	pinMode(PIN_2, OUTPUT);
 	pinMode(PIN_3, OUTPUT);
 	
-	if(errorCode == 1){
+	if(errorCode == 1)
 		digitalWrite(PIN_1, 0);
-	}
-	else if(errorCode == 2){
+	else if(errorCode == 2)
 		digitalWrite(PIN_2, 0);
-	}
-	else if(errorCode == 3){
+	else if(errorCode == 3)
 		digitalWrite(PIN_3, 0);
-	}
-	else if(errorCode == -1){
+	else if(errorCode == -1)
 		digitalWrite(PIN_1, 1);
+	else if(errorCode == -2)
 		digitalWrite(PIN_2, 1);
+	else if(errorCode == -3)
 		digitalWrite(PIN_3, 1);
-	}
 	
 	return 0;
 }

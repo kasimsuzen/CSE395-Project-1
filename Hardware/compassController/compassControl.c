@@ -63,7 +63,7 @@ double headingAngle()
 
     	//Compute heading
     	double heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
-
+	heading -= 6.0;
     	//Convert heading to 0 - 360
         if(heading < 0)
     		heading += 360;

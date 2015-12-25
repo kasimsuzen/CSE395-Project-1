@@ -9,6 +9,6 @@ using namespace std;
 
 vector<string> split(string str, char delimiter);
 void parseGPGGA(string arg1, float* latitude, float* longitude);
-void readGPSData(char * buf);
+void readGPSData(char * buffer);
 
 #endif

@@ -24,11 +24,11 @@ int servoTurnRL(int destinationAngle,int currentAngle);
 void servoController(int destinationAngle,int isFinished){
 	if(isFinished == 1){
 		servoTurnUp('c');
+		servoTurnRL(1,1);
 	}
 	else{
-		servoTurnUp('c');
-		while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
 		servoTurnUp('f');
+		while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
 	}
 }
 
