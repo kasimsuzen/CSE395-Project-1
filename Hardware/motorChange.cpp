@@ -38,7 +38,7 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 	n = currentAngle - destinationAngle;
 	k = 360 - abs(n);
 	cout << "SERVO" << destinationAngle << " " << n << " " << k<< endl;
-	if( abs(n) <= 15 || k <= 15){
+	if( abs(n) <= 30 || k <= 30){
 		sprintf(temp2,"%d",RL_CENTER);
 		strcat(temp1,temp2);
 		strcat(temp1,temp3);
@@ -48,7 +48,7 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 	else if((n < k && n > 0) || (k < n &&  n < 0) ){
 		sprintf(temp2,"%d",TURN_RIGHT);
 	}
-	else if((n < k && n < 0) && (k < n && n > 0)){
+	else if((n < k && n < 0) || (k < n && n > 0)){
 		sprintf(temp2,"%d",TURN_LEFT);
 		
 	}		

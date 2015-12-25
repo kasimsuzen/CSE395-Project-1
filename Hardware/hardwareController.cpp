@@ -20,7 +20,7 @@ void c(){
 	std::cout << "c\n";
 }
 int main(int argc,char **argv){
-	float latitude=0,longitude=0,epsilon = 0.0010,currentLat,currentLong;
+	float latitude=0,longitude=0,epsilon = 0.0001,currentLat,currentLong;
 	int tempAngle=0,tempWifi=0;
 	char temp[250];
 	vector<string> sep;
@@ -71,8 +71,13 @@ int main(int argc,char **argv){
 
 		// if command came
 		mainMutex.lock();
+		cout << recvMessage << endl;
 		sep = split(recvMessage,' ');
+		recvMessage.clear();
 		mainMutex.unlock();
+		cout << sep.size();
+		for(int a =0 ; a < sep.size(); ++a)
+			cout << "sep " << a << "  " << sep[a] << endl;
 		if(sep.size() == 4){
 		// outdoor 
 			latitude = atof(sep[1].c_str());
@@ -82,8 +87,15 @@ int main(int argc,char **argv){
 			
 			while(1){
 				parseGPSData(&currentLat,&currentLong);
-				if(fabs(currentLat - latitude) <= epsilon && fabs(currentLong - longitude) <= epsilon)
+				if(fabs(currentLat - latitude) <= epsilon && fabs(currentLong - longitude) <= epsilon){
+					mainMutex.lock();
+					sendMessage.clear();
+					sprintf(temp,"0 %f %f",latitude,longitude);
+					sendMessage.append(temp);
+					mainMutex.unlock();
+					memset(temp,'\0',250);
 					break;
+				}
 				servoController(tempAngle,0);
 				usleep(50000);
 			}
@@ -95,8 +107,15 @@ int main(int argc,char **argv){
 			tempAngle = atof(sep[2].c_str());
 			servoController(tempAngle,0);
 			while(1){
-				if(tempWifi == findLocal())
+				if(tempWifi == findLocal()){
+					mainMutex.lock();
+					sendMessage.clear();
+					sprintf(temp,"%d %f %f",tempWifi,latitude,longitude);
+					sendMessage.append(temp);
+					mainMutex.unlock();
+					memset(temp,'\0',250);
 					break;
+				}
 				servoController(tempAngle,0);	
 			}
 			servoController(tempAngle,1);

@@ -124,7 +124,7 @@ void writeLoop(socket_ptr sock, string_ptr prompt)
 	
         if(!sendMessage.empty())
         {
-		sendMessage = *prompt + sendMessage + '\n';
+		sendMessage = *prompt + sendMessage;
 		cout << sendMessage << sendMessage.empty() << endl;
             //sock->write_some(buffer(inputMsg, inputSize));
 		sock->write_some(buffer(sendMessage, inputSize));
