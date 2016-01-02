@@ -1,5 +1,5 @@
 CC= g++
-CFLAGS= -c -Wall -std=c++11 -D GROUP8 -D DEVICE
+CFLAGS= -c -Wall -std=c++11 -D GROUP1 -D DEVICE
 LDFLAGS= -lm -lboost_system -lboost_date_time -lboost_thread -lpthread -lstdc++ -lwiringPi
 SOURCES=
 OBJECTS= build/gpsDataParser.o build/readGPS.o build/rs232.o build/motorChange.o build/compassControl.o build/hardwareController.o build/client.o build/internetAccess.o build/wifiRaspberry.o build/ledBlink.o

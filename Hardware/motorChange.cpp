@@ -7,13 +7,14 @@
 #include <boost/bind.hpp>
 
 extern boost::mutex mainMutex;
-
+extern int indoorArea;
 using namespace std;
 
 #define MICROSECOND_TO_ANGLE 700
 #define RL_CENTER 1600
 #define TURN_LEFT 2400
 #define TURN_RIGHT 1000
+#define SERVO_MIN 700
 
 /*
 	microsecondValue = angle * 10 + MICROSECOND_TO_ANGLE;
@@ -21,14 +22,23 @@ using namespace std;
 void servoTurnUp(char command);
 int servoTurnRL(int destinationAngle,int currentAngle);
 
-void servoController(int destinationAngle,int isFinished){
+void servoController(int destinationAngle,int isFinished,int originArea){
 	if(isFinished == 1){
 		servoTurnUp('c');
 		servoTurnRL(1,1);
 	}
 	else{
 		servoTurnUp('f');
-		while(1 != servoTurnRL(destinationAngle,headingAngle())); // Warning one line loop
+		while(1){
+			if(1 == servoTurnRL(destinationAngle,headingAngle()))
+				break;
+			mainMutex.lock();
+			if(originArea != -2 && originArea == indoorArea){
+				mainMutex.unlock();
+				break;
+			}
+			mainMutex.unlock();
+		} 
 	}
 }
 
@@ -38,7 +48,7 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 	n = currentAngle - destinationAngle;
 	k = 360 - abs(n);
 	cout << "SERVO" << destinationAngle << " " << n << " " << k<< endl;
-	if( abs(n) <= 30 || k <= 30){
+	if( abs(n) <= 15 || k <= 15){
 		sprintf(temp2,"%d",RL_CENTER);
 		strcat(temp1,temp2);
 		strcat(temp1,temp3);
@@ -62,7 +72,7 @@ void servoTurnUp(char command){
 	char temp1[50]="echo 1=",temp2[50],temp3[50]={"us > //dev//servoblaster "};
 	
 	if(command == 'c'){
-		sprintf(temp2,"%d",TURN_RIGHT);
+		sprintf(temp2,"%d",SERVO_MIN);
 	}
 	else if(command == 'f'){
 		sprintf(temp2,"%d",TURN_LEFT);

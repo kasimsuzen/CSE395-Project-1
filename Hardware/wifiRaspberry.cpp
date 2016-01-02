@@ -7,6 +7,12 @@
 #include <fstream>
 #include <cstdlib>
 #include "hardware.h"
+#include <unistd.h>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+
+extern boost::mutex mainMutex;
+extern int indoorArea;
 //smart
 
 
@@ -15,19 +21,7 @@ using namespace std;
 int averageVector(const vector<int> &values);
 
 int calculateNearest(const vector< vector< int> > values);
-vector<string> split(string str, char delimiter) {
 
-	vector<string> internal;
-
-	stringstream ss(str); // Turn the string into a stream.
-	string tok;
-
-	while (getline(ss, tok, delimiter)) {
-		internal.push_back(tok);
-	}
-
-	return internal;
-}
 /*
 int main(int argc, char const *argv[])
 {
@@ -56,48 +50,51 @@ int findLocal()
     	dbs[i].push_back(-3);
 
 
-
-	FILE *fp;
-	char path[1035];
-
-	/* Open the command for reading. */
-	fp = popen("sudo iwlist wlan0 scan|grep -o -e 'Signal level=.*' -e 'ESSID:.*'", "r");
-	if (fp == NULL) 
-	{
-		printf("Failed to run command\n" );
-		exit(1);
-	}
-
-	while(fgets(path, sizeof(path)-1, fp) != NULL)
-  {	
-    	string temp(path);
-
-			if(strlen(path) > 0 && temp[0] == 'E')
-			{
-				//readESSID 
-				vector<string> res = split(temp, '"');
-				//outfile << res[1] << " ";
-				after = res[1];
-			}
-			else if(strlen(path) > 0 && temp[0] == 'S')
-			{
-				vector<string> res = split(temp, '=');
-				sscanf(after.c_str(),"%d",&v2);
-				if( v2 != -1 && v2 < 12)
+	while(1){
+		FILE *fp;
+		char path[1035];
+	
+		/* Open the command for reading. */
+		fp = popen("sudo iwlist wlan0 scan|grep -o -e 'Signal level=.*' -e 'ESSID:.*'", "r");
+		if (fp == NULL) 
+		{
+			printf("Failed to run command\n" );
+			exit(1);
+		}
+	
+		while(fgets(path, sizeof(path)-1, fp) != NULL)
+		{	
+	    	string temp(path);
+	
+				if(strlen(path) > 0 && temp[0] == 'E')
 				{
-					dbs[atoi(after.c_str()) ].push_back(atoi(res[1].c_str()));
+					//readESSID 
+					vector<string> res = split(temp, '"');
+					//outfile << res[1] << " ";
+					after = res[1];
 				}
-				v2 = -1;
-
-			}
-	}   
+				else if(strlen(path) > 0 && temp[0] == 'S')
+				{
+					vector<string> res = split(temp, '=');
+					sscanf(after.c_str(),"%d",&v2);
+					if( v2 != -1 && v2 < 12)
+					{
+						dbs[atoi(after.c_str()) ].push_back(atoi(res[1].c_str()));
+					}
+					v2 = -1;
 	
-	int nearest = calculateNearest(dbs);
-	cout << "You are about " << nearest << " area" << endl;
-	
-	/* close */
+				}
+		}   
+		
+		int nearest = calculateNearest(dbs);
+		mainMutex.lock();
+		indoorArea = nearest;
+		mainMutex.unlock();
+		cout << "You are about " << nearest << " area" << endl;
+		usleep(1000);
+		/* close */
 		pclose(fp);
-	return nearest;
+	}
 }
 
 //find nearest as real (return + 1)

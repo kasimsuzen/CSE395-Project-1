@@ -4,7 +4,7 @@
 #define HARDWARE_H
 #define INTERNET_ACCESS_ERROR 1
 #define RESPOND_ERROR 2
-	void servoController(int destinationAngle,int isFinished);
+	void servoController(int destinationAngle,int isFinished,int originArea);
 	double headingAngle();
 	int parseGPSData(float * latitude,float* longitude,int limit=1);
 	int findLocal();

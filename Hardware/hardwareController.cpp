@@ -11,17 +11,11 @@ using namespace std;
 boost::mutex mainMutex;
 string sendMessage;
 string recvMessage;
+int indoorArea;
 
-void b(){
-	std::cout << "b\n";
-}
-
-void c(){
-	std::cout << "c\n";
-}
 int main(int argc,char **argv){
 	float latitude=0,longitude=0,epsilon = 0.0001,currentLat,currentLong;
-	int tempAngle=0,tempWifi=0;
+	int tempAngle=0,tempWifi=0,tempArea=0,previousArea=-1;
 	char temp[250];
 	vector<string> sep;
 	boost::thread_group threads;
@@ -35,11 +29,13 @@ int main(int argc,char **argv){
 	ledErrorOutput(-1 * INTERNET_ACCESS_ERROR);
 	
 	threads.create_thread(boost::bind(clientCube));
+	threads.create_thread(boost::bind(findLocal));
 	ledErrorOutput(RESPOND_ERROR);
 	while(1){
 		parseGPSData(&latitude,&longitude,5);
 		mainMutex.lock();
-		sprintf(temp,"%d %f %f",findLocal(),latitude,longitude);
+		sprintf(temp,"%d %f %f",indoorArea,latitude,longitude);
+		previousArea = indoorArea;
 		cout << "temp " << temp << endl;
 		sendMessage.append(temp);
 		mainMutex.unlock();
@@ -83,42 +79,50 @@ int main(int argc,char **argv){
 			latitude = atof(sep[1].c_str());
 			longitude = atof(sep[2].c_str());
 			tempAngle = atof(sep[3].c_str());
-			servoController(tempAngle,0);
+			servoController(tempAngle,0,-2);
 			
 			while(1){
 				parseGPSData(&currentLat,&currentLong);
 				if(fabs(currentLat - latitude) <= epsilon && fabs(currentLong - longitude) <= epsilon){
 					mainMutex.lock();
 					sendMessage.clear();
-					sprintf(temp,"0 %f %f",latitude,longitude);
+					sprintf(temp,"-1 %f %f",latitude,longitude);
 					sendMessage.append(temp);
 					mainMutex.unlock();
 					memset(temp,'\0',250);
 					break;
 				}
-				servoController(tempAngle,0);
+				servoController(tempAngle,0,-2);
 				usleep(50000);
 			}
-			servoController(tempAngle,1);
+			servoController(tempAngle,1,-2);
 		}
 		else if(sep.size() == 3){
 		//indoor
 			tempWifi = atof(sep[1].c_str());
 			tempAngle = atof(sep[2].c_str());
-			servoController(tempAngle,0);
 			while(1){
-				if(tempWifi == findLocal()){
-					mainMutex.lock();
+				mainMutex.lock();
+				tempArea = indoorArea;
+				mainMutex.unlock();
+				servoController(tempAngle,0,tempArea);
+				mainMutex.lock();
+				if(indoorArea != previousArea){
 					sendMessage.clear();
-					sprintf(temp,"%d %f %f",tempWifi,latitude,longitude);
+					sprintf(temp,"%d %f %f",indoorArea,latitude,longitude);
 					sendMessage.append(temp);
+					if(tempWifi == indoorArea){
+						mainMutex.unlock();
+						memset(temp,'\0',250);
+						break;
+					}
 					mainMutex.unlock();
-					memset(temp,'\0',250);
-					break;
 				}
-				servoController(tempAngle,0);	
+				else
+					mainMutex.unlock();
+
 			}
-			servoController(tempAngle,1);
+			servoController(tempAngle,1,tempArea);
 		}
 		// will wait new target
 		else if(sep.size() == 2 && sep[1].compare("finish") == 0)
