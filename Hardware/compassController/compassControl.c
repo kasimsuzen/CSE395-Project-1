@@ -59,7 +59,7 @@ double headingAngle()
     	//printf("magRaw X %i\t magRaw Y %i\t MagRaw Z %i \n", magRaw[0],magRaw[1],magRaw[2]);
 
     	//Only needed if the heading value does not increase when the magnetometer is rotated clockwise
-    	magRaw[1] = -magRaw[1];
+    	//magRaw[1] = -magRaw[1];
 
     	//Compute heading
     	double heading = 180 * atan2(magRaw[1],magRaw[0])/M_PI;
