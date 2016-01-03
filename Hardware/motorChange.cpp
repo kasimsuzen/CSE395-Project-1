@@ -35,6 +35,8 @@ void servoController(int destinationAngle,int isFinished,int originArea){
 				break;
 			wifiMutex.lock();
 			if(originArea != -2 && originArea != indoorArea){
+				servoTurnUp('c');
+				servoTurnRL(1,1);
 				wifiMutex.unlock();
 				break;
 			}

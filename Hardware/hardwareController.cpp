@@ -22,6 +22,8 @@ int main(int argc,char **argv){
 	indoorArea = -1;
 	boost::thread_group threads;
 
+	servoController(0,1,0);
+
 	memset(temp,'\0',250);
 
 	while(checkInternetAccess() == -1){
@@ -77,13 +79,16 @@ int main(int argc,char **argv){
 			cout << "sep " << a << "  " << sep[a] << endl;
 		if(sep.size() == 4){
 		// outdoor 
+			
 			latitude = atof(sep[1].c_str());
 			longitude = atof(sep[2].c_str());
 			tempAngle = atof(sep[3].c_str());
 			servoController(tempAngle,0,-2);
-			
+			cout << " outer server message " << latitude << " " << longitude << " " << tempAngle << endl;
 			while(1){
 				parseGPSData(&currentLat,&currentLong);
+				cout << "inner server message " << latitude << " " << longitude << " " << tempAngle << " current " << currentLat << " " << currentLong << endl;
+				
 				if(fabs(currentLat - latitude) <= epsilon && fabs(currentLong - longitude) <= epsilon){
 					mainMutex.lock();
 					sendMessage.clear();
@@ -102,20 +107,28 @@ int main(int argc,char **argv){
 		//indoor
 			tempWifi = atof(sep[1].c_str());
 			tempAngle = atof(sep[2].c_str());
+			cout << "step 1 " << endl; 
 			while(1){
+				cout << "step 2 " << endl;
 				wifiMutex.lock();
 				tempArea = indoorArea;
 				wifiMutex.unlock();
 
 				servoController(tempAngle,0,tempArea);
+				cout << "step 22 " << previousArea << " " << tempArea << endl;
 				mainMutex.lock();
-				if(tempArea != previousArea){
+				wifiMutex.lock();
+				tempArea = indoorArea;
+				wifiMutex.unlock();
+				if(tempArea != previousArea || tempWifi == tempArea){
 					previousArea = tempArea;
 					sendMessage.clear();
 					sprintf(temp,"%d %f %f",tempArea,latitude,longitude);
 					sendMessage.append(temp);
+					cout << "step 3 " << endl;
 					if(tempWifi == tempArea){
 						mainMutex.unlock();
+						cout << "step 4 " << endl;
 						memset(temp,'\0',250);
 						break;
 					}
@@ -125,12 +138,13 @@ int main(int argc,char **argv){
 					mainMutex.unlock();
 
 			}
+			cout << "step 5 " << endl;
 			servoController(tempAngle,1,tempArea);
 		}
 		// will wait new target
 		else if(sep.size() == 2 && sep[1].compare("finish") == 0)
  			continue;
-
+		cout << "step 6 " << endl;
 	}
 	threads.join_all();
 	return 0;

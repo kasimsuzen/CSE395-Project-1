@@ -73,10 +73,10 @@ double headingAngle()
            
         heading = (atan2(y, x) * 180 / M_PI) + 180;
             
-        printf("x=%d, y=%d, z=%d\n", x, y, z);
+        //printf("x=%d, y=%d, z=%d\n", x, y, z);
         printf("angle = %0.1f\n\n", heading);
      }
         
-     usleep(6000);
+     usleep(500000);
 	return heading;
 }
