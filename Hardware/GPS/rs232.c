@@ -204,12 +204,12 @@ http://man7.org/linux/man-pages/man3/termios.3.html
   }
 
   /* lock access so that another process can't also use the port */
-  if(flock(Cport[comport_number], LOCK_EX | LOCK_NB) != 0)
+  /*if(flock(Cport[comport_number], LOCK_EX | LOCK_NB) != 0)
   {
     close(Cport[comport_number]);
     perror("Another process has locked the comport.");
     return(1);
-  }
+  }*/
 
   error = tcgetattr(Cport[comport_number], old_port_settings + comport_number);
   if(error==-1)
