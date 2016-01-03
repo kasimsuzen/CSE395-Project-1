@@ -9,6 +9,7 @@
 
 using namespace std;
 boost::mutex mainMutex;
+boost::mutex wifiMutex;
 string sendMessage;
 string recvMessage;
 int indoorArea;
@@ -18,27 +19,28 @@ int main(int argc,char **argv){
 	int tempAngle=0,tempWifi=0,tempArea=0,previousArea=-1;
 	char temp[250];
 	vector<string> sep;
+	indoorArea = -1;
 	boost::thread_group threads;
 
 	memset(temp,'\0',250);
 
-	ledErrorOutput(INTERNET_ACCESS_ERROR);
 	while(checkInternetAccess() == -1){
 		usleep(500000);
 	}
-	ledErrorOutput(-1 * INTERNET_ACCESS_ERROR);
 	
 	threads.create_thread(boost::bind(clientCube));
 	threads.create_thread(boost::bind(findLocal));
-	ledErrorOutput(RESPOND_ERROR);
 	while(1){
-		parseGPSData(&latitude,&longitude,5);
+		parseGPSData(&latitude,&longitude,2);
 		mainMutex.lock();
+		wifiMutex.lock();
 		sprintf(temp,"%d %f %f",indoorArea,latitude,longitude);
 		previousArea = indoorArea;
+		wifiMutex.unlock();
 		cout << "temp " << temp << endl;
 		sendMessage.append(temp);
 		mainMutex.unlock();
+		usleep(500000);
 		mainMutex.lock();
 		if(!recvMessage.empty()){
 		cout << recvMessage << endl;
@@ -51,7 +53,6 @@ int main(int argc,char **argv){
 		sleep(1);
 		memset(temp,'\0',250);
 	}
-	ledErrorOutput(-1 * RESPOND_ERROR);
 	cout << "after init " << endl; 
 	while(1){
 		// waiting command from interface
@@ -102,16 +103,18 @@ int main(int argc,char **argv){
 			tempWifi = atof(sep[1].c_str());
 			tempAngle = atof(sep[2].c_str());
 			while(1){
-				mainMutex.lock();
+				wifiMutex.lock();
 				tempArea = indoorArea;
-				mainMutex.unlock();
+				wifiMutex.unlock();
+
 				servoController(tempAngle,0,tempArea);
 				mainMutex.lock();
-				if(indoorArea != previousArea){
+				if(tempArea != previousArea){
+					previousArea = tempArea;
 					sendMessage.clear();
-					sprintf(temp,"%d %f %f",indoorArea,latitude,longitude);
+					sprintf(temp,"%d %f %f",tempArea,latitude,longitude);
 					sendMessage.append(temp);
-					if(tempWifi == indoorArea){
+					if(tempWifi == tempArea){
 						mainMutex.unlock();
 						memset(temp,'\0',250);
 						break;
