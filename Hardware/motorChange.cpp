@@ -6,7 +6,7 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
-extern boost::mutex mainMutex;
+extern boost::mutex wifiMutex;
 extern int indoorArea;
 using namespace std;
 
@@ -23,6 +23,7 @@ void servoTurnUp(char command);
 int servoTurnRL(int destinationAngle,int currentAngle);
 
 void servoController(int destinationAngle,int isFinished,int originArea){
+	
 	if(isFinished == 1){
 		servoTurnUp('c');
 		servoTurnRL(1,1);
@@ -32,12 +33,12 @@ void servoController(int destinationAngle,int isFinished,int originArea){
 		while(1){
 			if(1 == servoTurnRL(destinationAngle,headingAngle()))
 				break;
-			mainMutex.lock();
-			if(originArea != -2 && originArea == indoorArea){
-				mainMutex.unlock();
+			wifiMutex.lock();
+			if(originArea != -2 && originArea != indoorArea){
+				wifiMutex.unlock();
 				break;
 			}
-			mainMutex.unlock();
+			wifiMutex.unlock();
 		} 
 	}
 }
@@ -48,7 +49,7 @@ int servoTurnRL(int destinationAngle,int currentAngle){
 	n = currentAngle - destinationAngle;
 	k = 360 - abs(n);
 	cout << "SERVO" << destinationAngle << " " << n << " " << k<< endl;
-	if( abs(n) <= 15 || k <= 15){
+	if( abs(n) <= 20 || k <= 20){
 		sprintf(temp2,"%d",RL_CENTER);
 		strcat(temp1,temp2);
 		strcat(temp1,temp3);
