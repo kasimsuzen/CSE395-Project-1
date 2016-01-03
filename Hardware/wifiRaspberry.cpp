@@ -11,7 +11,7 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
-extern boost::mutex mainMutex;
+extern boost::mutex wifiMutex;
 extern int indoorArea;
 //smart
 
@@ -21,6 +21,20 @@ using namespace std;
 int averageVector(const vector<int> &values);
 
 int calculateNearest(const vector< vector< int> > values);
+/*int findLocal();
+vector<string> split(string str, char delimiter) {
+
+	vector<string> internal;
+
+	stringstream ss(str); // Turn the string into a stream.
+	string tok;
+
+	while (getline(ss, tok, delimiter)) {
+		internal.push_back(tok);
+	}
+
+	return internal;
+}
 
 /*
 int main(int argc, char const *argv[])
@@ -36,8 +50,8 @@ int main(int argc, char const *argv[])
 			break;
 	}
 	return 0;
-}*/
-
+}
+*/
 int findLocal()
 {
     string temp;
@@ -65,6 +79,7 @@ int findLocal()
 		while(fgets(path, sizeof(path)-1, fp) != NULL)
 		{	
 	    	string temp(path);
+		//cout << temp << endl;
 	
 				if(strlen(path) > 0 && temp[0] == 'E')
 				{
@@ -87,13 +102,19 @@ int findLocal()
 		}   
 		
 		int nearest = calculateNearest(dbs);
-		mainMutex.lock();
+		wifiMutex.lock();
 		indoorArea = nearest;
-		mainMutex.unlock();
+		wifiMutex.unlock();
 		cout << "You are about " << nearest << " area" << endl;
-		usleep(1000);
+		usleep(100000);
 		/* close */
 		pclose(fp);
+		for(int i=0;i < dbs.size(); ++i)
+			dbs[i].clear();
+		dbs.clear();
+		dbs.resize(11);
+		for(int i=0;i < dbs.size(); ++i)
+			dbs[i].push_back(-3);
 	}
 }
 
