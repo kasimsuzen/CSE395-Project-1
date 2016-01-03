@@ -10,7 +10,7 @@ all: Gps Servo Compass Hardware Client Wifi Move Link
 Move:
 	mv gpsDataParser.o readGPS.o rs232.o motorChange.o compassControl.o hardwareController.o client.o internetAccess.o wifiRaspberry.o build/
 Link:
-	$(CC) $(OBJECTS) $(LDFLAGS) -o hard
+	$(CC) $(OBJECTS) $(LDFLAGS) -o navigator
 
 Gps:
 	$(CC) $(CFLAGS) GPS/gpsDataParser.cpp GPS/readGPS.c GPS/rs232.c 
