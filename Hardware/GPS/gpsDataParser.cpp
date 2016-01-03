@@ -57,7 +57,7 @@ int parseGPSData(float * latitude,float* longitude,int limit/*=1*/) {
 		
 		memset(buffer,'\0',4095);
 		readGPSData(buffer);
-		//cout << buffer << endl << tempLat << tempLong << endl;
+		//cout << buffer << endl;// << tempLat << tempLong << endl;
 		bufferptr = strtok(buffer,"\n");
 		while(bufferptr != NULL)
 		{
@@ -68,5 +68,12 @@ int parseGPSData(float * latitude,float* longitude,int limit/*=1*/) {
 			break;
 		if(limit != 1)
 			--count;
+		usleep(50000);
 	}
+	//cout << longitude << latitude << endl;
 }
+/*
+int main(){
+	float lat,lo;
+	parseGPSData(&lat,&lo,60);
+}*/
