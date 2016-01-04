@@ -3,22 +3,46 @@
 
 #include <QMainWindow>
 #include <QPushButton>
+#include <QDebug>
+#include <vector>
+#include <QThread>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include "location.h"
+#include <cstdio>
+#include <QCloseEvent>
+#include "ui_mainwindow.h"
+#include "shortestpath.h"
 
-namespace Ui {
+using namespace std;
+using namespace boost;
+
+namespace Ui
+{
 class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+public slots:
+    void onProgressChanged(QString info);
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+
+    void setCurrentLocation(int data);
+    int getCurrentLocation();
+    void changeBtnColor(int location,char *color);
+    void clearBtnColor();
+    char* qstrToChar(QString str);
+    void selectTarget(QPushButton* btn);
+    int findAngle(int c, int t);
+
     ~MainWindow();
 
 private slots:
-    void on_pathBtn_clicked();
-    void on_pushButton_clicked();
+    void on_pushButton_1_clicked();
     void on_pushButton_2_clicked();
     void on_pushButton_3_clicked();
     void on_pushButton_4_clicked();
@@ -74,17 +98,37 @@ private slots:
     void on_pushButton_54_clicked();
     void on_pushButton_55_clicked();
     void on_pushButton_56_clicked();
+
+    void closeEvent(QCloseEvent *event);
+    void on_pathBtn_clicked();
+    void on_serverBtn_clicked();
+
+
+    void on_forceConnectBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
-    bool drawShapes;
     int targetLocation;
     int currentLocation;
+    Location** locationArray;
     QList<QPushButton*> list;
+    ShortestPath sp;
+    adjacency_list_t adjacency_list;
 
-    void changeBtnColor(int location,char *color);
-    char* qstrToChar(QString str);
-    void clearBtnColor();
-    void changeColor(QPushButton* btn);
+};
+
+class WorkerThread : public QThread {
+    Q_OBJECT
+    void run()
+    {
+        while(1)
+        {
+            usleep(50000);
+            emit progressChanged("");
+        }
+    }
+signals:
+    void progressChanged(QString info);
 };
 
 #endif // MAINWINDOW_H

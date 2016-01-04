@@ -1,21 +1,39 @@
 #include "mainwindow.h"
+#include "network.h"
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/algorithm/string.hpp>
+
+using namespace std;
+using namespace boost;
+
+extern string recvMessage;
+extern string sendMessage;
+extern boost::mutex mainMutex;
+int __serverStatus = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // server mesajini alip parse edip gerekli buton boyamalarini yapan thread, program boyunca calisir, sonsuz dongude
+    WorkerThread *workerThread = new WorkerThread;
+    connect(workerThread, SIGNAL(progressChanged(QString)),
+            SLOT(onProgressChanged(QString)));
+    connect(workerThread, SIGNAL(finished()),
+            workerThread, SLOT(deleteLater()));
+    workerThread->start();
+
     ui->setupUi(this);
-
-    drawShapes=false;
-
-    currentLocation=-1;
 
     targetLocation=-1;
 
-    // ekran buyutme ozelligini kapat
-    setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
+    currentLocation=-1;
 
     list = QList<QPushButton*>();
+
     list.append(ui->pushButton_0);
     list.append(ui->pushButton_1);
     list.append(ui->pushButton_2);
@@ -40,86 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
     list.append(ui->lab3);
     list.append(ui->lab4);
 
-    clearBtnColor();
-}
-
-
-/*
- * Target ve current buton haricinde tum butonların renklerini transparan yapar
- */
-void MainWindow::clearBtnColor()
-{
-    for (int i = 0; i < list.size(); ++i)
-    {
-        list[i]->setStyleSheet("background-color: rgba(255, 255, 255, 0); color: rgba(255, 255, 255, 0);");
-    }
-
-    if(currentLocation!=-1)
-        changeBtnColor(currentLocation,(char*)"blue");
-    if(targetLocation!=-1)
-        changeBtnColor(targetLocation,(char*)"red");
-}
-
-/*
- * Serverdan current locationdan aldığı yeri verilen renge boyar.
- *
-*/
-void MainWindow::changeBtnColor(int location,char *color)
-{
-    char temp[256],str[10];
-
-    sprintf(temp,"QPushButton {background-color: %s;color: %s; border:none}",color,color);
-    sprintf(str,"%d",location);
-
-    for (int i = 0; i < list.size(); ++i)
-    {
-        if(strcmp(qstrToChar(list[i]->text()),str)==0)
-            list[i]->setStyleSheet(temp);
-    }
-}
-
-char* MainWindow::qstrToChar(QString str)
-{
-    QByteArray ba = str.toLatin1();
-    char *c_str2 = ba.data();
-    return c_str2;
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::changeColor(QPushButton* btn)
-{
-    if(!drawShapes)
-    {
-        btn->setStyleSheet("QPushButton {background-color: red;color: red;}");
-        sscanf(qstrToChar(btn->text()),"%d",&targetLocation);
-        drawShapes = true;
-    }
-    else
-    {
-        btn->setStyleSheet("QPushButton {background-color: rgba(255, 255, 255, 0); color:rgba(255, 255, 255, 0);}");
-        targetLocation=-1;
-        drawShapes = false;
-    }
-}
-
-void MainWindow::on_pathBtn_clicked()
-{
-    clearBtnColor();
-
-    if(targetLocation ==-1 || currentLocation == -1)
-    {
-        qDebug() << "target or current location is unknown!";
-        return;
-    }
-
-    // dijkstra algoritma sinifi
-    ShortestPath sp;
-    adjacency_list_t adjacency_list(30);
     // komsuluklar eklenir
+    adjacency_list = adjacency_list_t(300);
     sp.addEdge(adjacency_list,0,1);
     sp.addEdge(adjacency_list,1,0);
     sp.addEdge(adjacency_list,1,2);
@@ -171,6 +111,123 @@ void MainWindow::on_pathBtn_clicked()
     sp.addEdge(adjacency_list,10,22);
     sp.addEdge(adjacency_list,22,10);
 
+    clearBtnColor();
+
+    // ekran buyutme ozelligini kapat
+    setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
+}
+
+void MainWindow::on_serverBtn_clicked()
+{
+    //boost::thread guiThread(clientCube);
+    clientCube();
+    //usleep(500000);
+    if(__serverStatus==1)
+    {
+        //ui->pathBtn->setEnabled(true);
+        ui->serverStatus->setText("Server:ON");
+    }
+}
+
+/*
+ * Target ve current buton haricinde tum butonların renklerini transparan yapar
+ */
+void MainWindow::clearBtnColor()
+{
+    for (int i = 0; i < list.size(); ++i)
+    {
+        list[i]->setStyleSheet("background-color: rgba(255, 255, 255, 0); color: rgba(255, 255, 255, 0);");
+    }
+
+    if(currentLocation!=-1)
+        changeBtnColor(currentLocation,(char*)"blue");
+    if(targetLocation!=-1)
+        changeBtnColor(targetLocation,(char*)"red");
+}
+
+void MainWindow::onProgressChanged(QString info)
+{
+    int btnNum=-1;
+    char tempBuf[100];
+
+    if(targetLocation ==-1 || currentLocation == -1)
+        ui->pathBtn->setEnabled(false);
+    else
+        ui->pathBtn->setEnabled(true);
+
+
+    if(strcmp(recvMessage.c_str(), "") != 0 && sscanf(recvMessage.c_str(),"%s %d",tempBuf,&btnNum)>1)
+    {
+        if(btnNum != MainWindow::currentLocation)
+        {
+            MainWindow::changeBtnColor(MainWindow::currentLocation, (char*)"rgba(255, 255, 255, 0)");
+
+            MainWindow::currentLocation = btnNum;
+
+
+            on_pathBtn_clicked();
+        }
+    }
+    else if(strcmp(recvMessage.c_str(),"exit")==0)
+    {
+        qDebug() << "server closed";
+        recvMessage.clear();
+        ui->serverStatus->setText("Server:OFF");
+        ui->pathBtn->setEnabled(false);
+        currentLocation = -1;
+        targetLocation=-1;
+        clearBtnColor();
+        //closeSocket();
+    }
+}
+
+/*
+ * Serverdan current locationdan aldığı yeri verilen renge boyar.
+ *
+*/
+void MainWindow::changeBtnColor(int location,char *color)
+{
+    char temp[256],str[10];
+
+    sprintf(temp,"QPushButton {background-color: %s;color: %s; border:none}",color,color);
+    sprintf(str,"%d",location);
+
+    for (int i = 0; i < list.size(); ++i)
+    {
+        if(strcmp(qstrToChar(list[i]->text()),str)==0)
+            list[i]->setStyleSheet(temp);
+    }
+}
+
+char* MainWindow::qstrToChar(QString str)
+{
+    QByteArray ba = str.toLatin1();
+    char *c_str2 = ba.data();
+    return c_str2;
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::selectTarget(QPushButton* btn)
+{
+    sscanf(qstrToChar(btn->text()),"%d",&targetLocation);
+    qDebug() << "Target changed to :" << targetLocation;
+    clearBtnColor();
+}
+
+void MainWindow::on_pathBtn_clicked()
+{
+    clearBtnColor();
+
+    if(targetLocation ==-1 || currentLocation == -1)
+    {
+        qDebug() << "target or current location is unknown!";
+        return;
+    }
+
     int current=currentLocation;
     int target=targetLocation;
 
@@ -190,175 +247,137 @@ void MainWindow::on_pathBtn_clicked()
     }
     // server'a gidecegi siradaki input hesaplanir
     int nextTarget = -1;
-    if(vectorShortestPath.size()>1)
+    if((vectorShortestPath.size()>1 && targetLocation<=10) || (vectorShortestPath.size()>2 && targetLocation>10))
         nextTarget=vectorShortestPath.at(1);
     else
     {
         qDebug() << "you are in target!";
+        changeBtnColor(targetLocation,(char*)"green");
+        mainMutex.lock();
+        sendMessage.clear();
+        sendMessage.append("finish");
+        mainMutex.unlock();
         return;
     }
 
-    qDebug() << "Shortest Path:";
+    //qDebug() << "Shortest Path:";
     // shortest path cizilir. yani buton renkleri degistirilir
     for (unsigned int i = 0; i < vectorShortestPath.size(); ++i)
     {
-        qDebug().resetFormat() << vectorShortestPath.at(i);
+        //qDebug().resetFormat() << vectorShortestPath.at(i);
         changeBtnColor(vectorShortestPath.at(i), (char*)"yellow");
     }
     int angle = findAngle(currentLocation,nextTarget);
 
-    qDebug() << "SENDING: next target: " << nextTarget << "angle: " << angle << "move";
-    if(angle==37)
-        qDebug() << "right";
-    else if(angle == 85)
-        qDebug() << "down";
-    else if(angle == 168)
-        qDebug() << "left";
-    else if(angle == 350)
-        qDebug() << "up";
-    else
-        qDebug() << "unkown angle";
+    qDebug() << "SENDING: next target: " << nextTarget << "angle: " << angle;
+
+    char tempString[256];
+    sprintf(tempString, "%d %d", nextTarget, angle);
+
+    mainMutex.lock();
+    sendMessage.clear();
+    sendMessage.append(tempString);
+    mainMutex.unlock();
+
+    /*usleep(500000);
+
+    mainMutex.lock();
+    sendMessage.append(tempString);
+    mainMutex.unlock();*/
+
+
     changeBtnColor(currentLocation,(char*)"blue");
     changeBtnColor(targetLocation,(char*)"red");
 }
 
-
-void MainWindow::on_serverBtn_clicked()
+void MainWindow::closeEvent(QCloseEvent *event)
 {
-
+    qDebug() << "closed widget";
+    mainMutex.lock();
+    sendMessage.clear();
+    sendMessage.append("exit");
+    mainMutex.unlock();
+    //closeSocket();
 }
 
 int MainWindow::findAngle(int c, int t)
 {
-    int leftAngle = 168; //Magneting Heading 169S
-    int rightAngle = 37; //NE
-    int downAngle = 85;  //E
-    int upAngle = 350;   //N
-
     if (c == 0 && t == 1)
-        return rightAngle;
-    else if (c == 1 && t == 0)
-        return leftAngle;
-    else if (c == 0 && t == 11)
-        return leftAngle;
-    else if (c == 11 && t == 0)
-        return rightAngle;
-    else if (c == 0 && t == 12)
-        return upAngle;
-    else if (c == 12 && t == 0)
-        return downAngle;
-    else if (c == 0 && t == 13)
-        return upAngle;
-    else if (c == 13 && t == 0)
-        return downAngle;
+        return 312;
     else if (c == 0 && t == 10)
-        return downAngle;
-    else if (c == 10 && t == 0)
-        return upAngle;
+        return 165;
+    else if (c == 1 && t == 0)
+        return 52;
     else if (c == 1 && t == 2)
-        return rightAngle;
+        return 320;
     else if (c == 2 && t == 1)
-        return leftAngle;
-    else if (c == 1 && t == 13)
-        return upAngle;
-    else if (c == 13 && t == 1)
-        return downAngle;
+        return 43;
     else if (c == 2 && t == 3)
-        return rightAngle;
+        return 283;
     else if (c == 3 && t == 2)
-        return leftAngle;
-    else if (c == 2 && t == 14)
-        return upAngle;
-    else if (c == 14 && t == 2)
-        return downAngle;
-    else if (c == 3 && t == 14)
-        return upAngle;
-    else if (c == 14 && t == 3)
-        return downAngle;
-    else if (c == 3 && t == 15)
-        return upAngle;
-    else if (c == 15 && t == 3)
-        return downAngle;
-    else if (c == 3 && t == 16)
-        return rightAngle;
-    else if (c == 16 && t == 3)
-        return leftAngle;
+        return 38;
     else if (c == 3 && t == 4)
-        return downAngle;
+        return 230;
     else if (c == 4 && t == 3)
-        return upAngle;
-    else if (c == 4 && t == 17)
-        return rightAngle;
-    else if (c == 17 && t == 4)
-        return leftAngle;
+        return 310;
     else if (c == 4 && t == 5)
-        return downAngle;
+        return 208;
     else if (c == 5 && t == 4)
-        return upAngle;
-    else if (c == 5 && t == 18)
-        return rightAngle;
-    else if (c == 18 && t == 5)
-        return leftAngle;
+        return 355;
     else if (c == 5 && t == 6)
-        return downAngle;
+        return 190;
     else if (c == 6 && t == 5)
-        return upAngle;
-    else if (c == 6 && t == 19)
-        return rightAngle;
-    else if (c == 19 && t == 6)
-        return leftAngle;
+        return 339;
     else if (c == 6 && t == 7)
-        return leftAngle;
+        return 46;
     else if (c == 7 && t == 6)
-        return rightAngle;
+        return 282;
     else if (c == 7 && t == 8)
-        return leftAngle;
+        return 37;
     else if (c == 8 && t == 7)
-        return rightAngle;
-    else if (c == 8 && t == 20)
-        return leftAngle;
-    else if (c == 20 && t == 8)
-        return rightAngle;
+        return 263;
     else if (c == 8 && t == 9)
-        return upAngle;
+        return 328;
     else if (c == 9 && t == 8)
-        return downAngle;
-    else if (c == 9 && t == 21)
-        return leftAngle;
-    else if (c == 21 && t == 9)
-        return rightAngle;
+        return 205;
     else if (c == 9 && t == 10)
-        return upAngle;
+        return 352;
     else if (c == 10 && t == 9)
-        return downAngle;
-    else if (c == 10 && t == 22)
-        return leftAngle;
-    else if (c == 22 && t == 10)
-        return rightAngle;
+        return 165;
+    else if (c == 10 && t == 0)
+        return 340;
     else
         return -1;
 }
 
-void MainWindow::on_pushButton_0_clicked()  { changeColor(ui->pushButton_0); }
-void MainWindow::on_pushButton_1_clicked()  { changeColor(ui->pushButton_1); }
-void MainWindow::on_pushButton_2_clicked()  { changeColor(ui->pushButton_2); }
-void MainWindow::on_pushButton_3_clicked()  { changeColor(ui->pushButton_3); }
-void MainWindow::on_pushButton_4_clicked()  { changeColor(ui->pushButton_4); }
-void MainWindow::on_pushButton_5_clicked()  { changeColor(ui->pushButton_5); }
-void MainWindow::on_pushButton_6_clicked()  { changeColor(ui->pushButton_6); }
-void MainWindow::on_pushButton_7_clicked()  { changeColor(ui->pushButton_7); }
-void MainWindow::on_pushButton_8_clicked()  { changeColor(ui->pushButton_8); }
-void MainWindow::on_pushButton_9_clicked()  { changeColor(ui->pushButton_9); }
-void MainWindow::on_pushButton_10_clicked() { changeColor(ui->pushButton_10); }
-void MainWindow::on_z06_clicked()           { changeColor(ui->z06);}
-void MainWindow::on_lab2_clicked()          { changeColor(ui->lab2);}
-void MainWindow::on_z23_clicked()           { changeColor(ui->z23);}
-void MainWindow::on_z11_clicked()           { changeColor(ui->z11);}
-void MainWindow::on_lab1_clicked()          { changeColor(ui->lab1);}
-void MainWindow::on_kantin_clicked()        { changeColor(ui->kantin);}
-void MainWindow::on_lab3_clicked()          { changeColor(ui->lab3);}
-void MainWindow::on_z10_clicked()           { changeColor(ui->z10);}
-void MainWindow::on_z05_clicked()           { changeColor(ui->z05);}
-void MainWindow::on_z04_clicked()           { changeColor(ui->z04);}
-void MainWindow::on_z02_clicked()           { changeColor(ui->z02);}
-void MainWindow::on_lab4_clicked()          { changeColor(ui->lab4);}
+void MainWindow::on_pushButton_0_clicked()  { selectTarget(ui->pushButton_0); }
+void MainWindow::on_pushButton_1_clicked()  { selectTarget(ui->pushButton_1); }
+void MainWindow::on_pushButton_2_clicked()  { selectTarget(ui->pushButton_2); }
+void MainWindow::on_pushButton_3_clicked()  { selectTarget(ui->pushButton_3); }
+void MainWindow::on_pushButton_4_clicked()  { selectTarget(ui->pushButton_4); }
+void MainWindow::on_pushButton_5_clicked()  { selectTarget(ui->pushButton_5); }
+void MainWindow::on_pushButton_6_clicked()  { selectTarget(ui->pushButton_6); }
+void MainWindow::on_pushButton_7_clicked()  { selectTarget(ui->pushButton_7); }
+void MainWindow::on_pushButton_8_clicked()  { selectTarget(ui->pushButton_8); }
+void MainWindow::on_pushButton_9_clicked()  { selectTarget(ui->pushButton_9); }
+void MainWindow::on_pushButton_10_clicked() { selectTarget(ui->pushButton_10); }
+void MainWindow::on_z06_clicked()           { selectTarget(ui->z06);}
+void MainWindow::on_lab2_clicked()          { selectTarget(ui->lab2);}
+void MainWindow::on_z23_clicked()           { selectTarget(ui->z23);}
+void MainWindow::on_z11_clicked()           { selectTarget(ui->z11);}
+void MainWindow::on_lab1_clicked()          { selectTarget(ui->lab1);}
+void MainWindow::on_kantin_clicked()        { selectTarget(ui->kantin);}
+void MainWindow::on_lab3_clicked()          { selectTarget(ui->lab3);}
+void MainWindow::on_z10_clicked()           { selectTarget(ui->z10);}
+void MainWindow::on_z05_clicked()           { selectTarget(ui->z05);}
+void MainWindow::on_z04_clicked()           { selectTarget(ui->z04);}
+void MainWindow::on_z02_clicked()           { selectTarget(ui->z02);}
+void MainWindow::on_lab4_clicked()          { selectTarget(ui->lab4);}
+
+void MainWindow::on_forceConnectBtn_clicked()
+{
+    mainMutex.lock();
+    sendMessage.clear();
+    sendMessage.append("yes");
+    mainMutex.unlock();
+}

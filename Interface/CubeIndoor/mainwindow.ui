@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Cube Computer Engineer Building</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="label">
@@ -27,7 +27,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap resource="resource.qrc">:/files/KatPlaniPP.jpg</pixmap>
+     <pixmap>:/files/KatPlaniPP.jpg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -94,7 +94,7 @@
       <x>340</x>
       <y>120</y>
       <width>82</width>
-      <height>41</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -156,10 +156,10 @@
    <widget class="QPushButton" name="pushButton_7">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>530</y>
-      <width>181</width>
-      <height>71</height>
+      <x>249</x>
+      <y>550</y>
+      <width>173</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -198,24 +198,11 @@
       <x>249</x>
       <y>120</y>
       <width>93</width>
-      <height>41</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
      <string>1</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="mekanBtn">
-    <property name="geometry">
-     <rect>
-      <x>660</x>
-      <y>120</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Mekan</string>
     </property>
    </widget>
    <widget class="QPushButton" name="z06">
@@ -393,6 +380,37 @@
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="serverStatus">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>10</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Server: OFF</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="forceConnectBtn">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>120</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Force Connect</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -415,8 +433,6 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>menu.png</file>
+        <file>cube.ico</file>
+    </qresource>
+</RCC>

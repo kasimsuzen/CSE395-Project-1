@@ -35,10 +35,9 @@ public:
                               std::vector<weight_t> &min_distance,
                               std::vector<vertex_t> &previous);
     std::list<vertex_t> DijkstraGetShortestPathTo(
-        vertex_t vertex, const std::vector<vertex_t> &previous);
+            vertex_t vertex, const std::vector<vertex_t> &previous);
 
-    void addEdge(adjacency_list_t &adjacency_list,int v1, int v2,int weight);
-    void addEdge(adjacency_list_t &adjacency_list, int v1, int v2);
+    void addEdge(adjacency_list_t &adjacency_list,int v1, int v2, int weight);
 private:
     weight_t max_weight;
 };

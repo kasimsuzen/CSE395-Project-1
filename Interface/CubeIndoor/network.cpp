@@ -2,14 +2,14 @@
 #include <queue>
 #include <string>
 #include <cstdlib>
-#include "network.h"
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/algorithm/string.hpp>
-#include "mainwindow.h"
-#include <QDebug>
+#include <cstring>
+#include "network.h"
+
 using namespace std;
 using namespace boost;
 using namespace boost::asio;
@@ -19,7 +19,13 @@ typedef boost::shared_ptr<tcp::socket> socket_ptr;
 typedef boost::shared_ptr<string> string_ptr;
 typedef boost::shared_ptr< queue<string_ptr> > messageQueue_ptr;
 
+string sendMessage;
+string recvMessage;
+boost::mutex mainMutex;
+extern int __serverStatus;
+
 io_service service;
+socket_ptr sock(new tcp::socket(service));
 messageQueue_ptr messageQueue(new queue<string_ptr>);
 tcp::endpoint ep(ip::address::from_string(SERVER_IP), SERVER_PORT);
 const int inputSize = 256;
@@ -31,6 +37,7 @@ void displayLoop(socket_ptr);
 void inboundLoop(socket_ptr, string_ptr);
 void writeLoop(socket_ptr, string_ptr);
 string* buildPrompt();
+int clientCube();
 // End of Function Prototypes
 
 int clientCube()
@@ -38,47 +45,29 @@ int clientCube()
     try
     {
         boost::thread_group threads;
-        socket_ptr sock(new tcp::socket(service));
 
         string_ptr prompt( buildPrompt() );
         promptCpy = prompt;
 
         sock->connect(ep);
-        /*if(sock->write_some(buffer("InterfaceStart", 1024)) == 0)
-        {
 
-            sock->shutdown(tcp::socket::shutdown_both);
-            sock->close();
-            return 0;
-        }
+        cerr << "Server connected." << endl;
 
-        char readBuf[1024] = {0};
-        sock->read_some(buffer(readBuf, 1024));
-        cout << readBuf << endl;
-
-
-        sock->shutdown(tcp::socket::shutdown_both);
-        sock->close();
-
-        return 1;
-        */
-        cout << "Welcome to the ChatServer\nType \"exit\" to quit" << endl;
+        string inputMsg = *prompt + "yes";
+        sock->write_some(buffer(inputMsg, inputSize));
 
         threads.create_thread(boost::bind(displayLoop, sock));
         threads.create_thread(boost::bind(inboundLoop, sock, prompt));
         threads.create_thread(boost::bind(writeLoop, sock, prompt));
-
-        threads.join_all();
     }
     catch(std::exception& e)
     {
         cerr << e.what() << endl;
+        __serverStatus = 0;
         return -1;
     }
-
-    //puts("Press any key to continue...");
-    //getc(stdin);
-    //return EXIT_SUCCESS;
+    __serverStatus = 1;
+    return 1;
 }
 
 string* buildPrompt()
@@ -87,15 +76,13 @@ string* buildPrompt()
     char nameBuf[inputSize] = {0};
     string* prompt = new string(": ");
 
-    //cout << "Please input a new username: ";
-    //cin.getline(nameBuf, inputSize);
-    #ifdef DEVICE
-        strcpy(nameBuf,DEVICE_NAME);
-    #endif
+#ifdef DEVICE
+    strcpy(nameBuf,DEVICE_NAME);
+#endif
 
-    #ifdef INTERFACE
-        strcpy(nameBuf,INTERFACE_NAME);
-    #endif
+#ifdef INTERFACE
+    strcpy(nameBuf,INTERFACE_NAME);
+#endif
     *prompt = (string)nameBuf + *prompt;
     boost::algorithm::to_lower(*prompt);
 
@@ -105,53 +92,43 @@ string* buildPrompt()
 void inboundLoop(socket_ptr sock, string_ptr prompt)
 {
     int bytesRead = 0;
-    char readBuf[1024] = {0};
-    cout << "once" << endl;
-    boost::system::error_code erc;
+    char readBuf[inputSize] = {0};
+
     for(;;)
     {
-        cout << "infinite loop at inboundloop" << endl;
-        if(!sock->available(erc))
+        if(sock->available())
         {
-            cout << "soc connected" << endl;
             bytesRead = sock->read_some(buffer(readBuf, inputSize));
             string_ptr msg(new string(readBuf, bytesRead));
 
             messageQueue->push(msg);
-            cout << "\n" + *(messageQueue->front());
         }
-        if(erc){
-            //error.message();
-            cout << erc.category().name() << ':' << erc.value() << " " << erc.message();
-            cout << "asd" <<sock->available();
-        }
-        boost::this_thread::sleep( boost::posix_time::millisec(1000));
+
+        boost::this_thread::sleep( boost::posix_time::millisec(50));
     }
 }
 
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
-    char inputBuf[inputSize] = {0};
     string inputMsg;
 
     for(;;)
     {
-        cout << "infinite while at write" << endl;
-        //cin.getline(inputBuf, inputSize);
-        //inputMsg = *prompt + (string)inputBuf + '\n';
-        inputMsg = "Otomatik response\n";
-        cout << "yazdın baam " << inputMsg << endl;
-        if(!inputMsg.empty())
+        inputMsg = *prompt;
+
+        mainMutex.lock();
+        if(!sendMessage.empty())
         {
-            cout << "scokete attı" << endl;
+            cerr << "Message sent:" << sendMessage <<":\n";
+            inputMsg += sendMessage;
             sock->write_some(buffer(inputMsg, inputSize));
+            sendMessage.clear();
         }
-
+        mainMutex.unlock();
         if(inputMsg.find("exit") != string::npos)
-            exit(1);
-
+            return;
         inputMsg.clear();
-        memset(inputBuf, 0, inputSize);
+        boost::this_thread::sleep( boost::posix_time::millisec(1));
     }
 }
 
@@ -163,13 +140,17 @@ void displayLoop(socket_ptr sock)
         {
             if(!isOwnMessage(messageQueue->front()))
             {
-                cout << "\n" + *(messageQueue->front());
+                string strTemp = *(messageQueue->front());
+                cerr << "message received:" << strTemp.c_str() << ":\n";
+                mainMutex.lock();
+                recvMessage.clear();
+                recvMessage.append(strTemp.c_str());
+                mainMutex.unlock();
             }
-
             messageQueue->pop();
         }
 
-        boost::this_thread::sleep( boost::posix_time::millisec(1000));
+        boost::this_thread::sleep( boost::posix_time::millisec(50));
     }
 }
 
@@ -179,4 +160,16 @@ bool isOwnMessage(string_ptr message)
         return true;
     else
         return false;
+}
+
+void closeSocket()
+{
+    //threads.interrupt_all();
+    sock->shutdown(tcp::socket::shutdown_both);
+    sock->close();
+    boost::system::error_code ec;
+    if(ec)
+    {
+        cerr << ec.message().c_str();
+    }
 }

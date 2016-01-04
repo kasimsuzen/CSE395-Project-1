@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2015-12-16T19:57:40
+# Project created by QtCreator 2016-01-02T17:35:47
 #
 #-------------------------------------------------
 
@@ -8,19 +8,18 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = CubeOutdoor
+TARGET = CubeAll
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    shortestpath.cpp
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    shortestpath.h \
-    location.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
 RESOURCES += \
-    myfiles.qrc
+    source.qrc
+
+RC_ICONS += cube.ico
