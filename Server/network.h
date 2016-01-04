@@ -9,13 +9,7 @@
 #define DEVICE_NAME "Device"
 #define INTERFACE_NAME "Interface"
 
-#ifdef GROUP8
 #define SERVER_PORT 8001
-#endif
-
-#ifdef GROUP1
-#define SERVER_PORT 6161
-#endif
 
 int checkInternetAccess();
 int clientCube();

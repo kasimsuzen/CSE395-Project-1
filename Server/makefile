@@ -5,25 +5,16 @@ SOURCES= *.cpp *.cS
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE= $(SOURCES)
 
-all: serverG1 serverG8 clientDeviceG1 clientInterfaceG1 clientDeviceG8 clientInterfaceG8
+all: server clientDevice clientInterface
 
-serverG1:
-	$(CC) $(CFLAGS) -D GROUP1 server.cpp $< $(LDFLAGS) -o $@
+server:
+	$(CC) $(CFLAGS) server.cpp $< $(LDFLAGS) -o $@
 
-serverG8:
-	$(CC) $(CFLAGS) -D GROUP8 server.cpp $< $(LDFLAGS) -o $@
+clientDevice:
+	$(CC) $(CFLAGS) -D DEVICE client.cpp $< $(LDFLAGS) -o $@
 
-clientDeviceG1:
-	$(CC) $(CFLAGS) -D DEVICE -D GROUP1 client.cpp $< $(LDFLAGS) -o $@
-
-clientInterfaceG1:
-	$(CC) $(CFLAGS) -D INTERFACE -D GROUP1 client.cpp $< $(LDFLAGS) -o $@
-
-clientDeviceG8:
-	$(CC) $(CFLAGS) -D DEVICE -D GROUP8 client.cpp $< $(LDFLAGS) -o $@
-
-clientInterfaceG8:
-	$(CC) $(CFLAGS) -D INTERFACE -D GROUP8 client.cpp $< $(LDFLAGS) -o $@
+clientInterface:
+	$(CC) $(CFLAGS) -D INTERFACE client.cpp $< $(LDFLAGS) -o $@
 
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
