@@ -42,7 +42,7 @@ int main(int argc,char **argv){
 		cout << "temp " << temp << endl;
 		sendMessage.append(temp);
 		mainMutex.unlock();
-		usleep(500000);
+		usleep(50000);
 		mainMutex.lock();
 		if(!recvMessage.empty()){
 		cout << recvMessage << endl;
@@ -57,8 +57,21 @@ int main(int argc,char **argv){
 	}
 	cout << "after init " << endl; 
 	while(1){
-		// waiting command from interface
 		while(1){
+	                parseGPSData(&latitude,&longitude,2);
+        	        mainMutex.lock();
+                	wifiMutex.lock();
+	                sprintf(temp,"%d %f %f",indoorArea,latitude,longitude);
+        	        previousArea = indoorArea;
+	                wifiMutex.unlock();
+        	        cout << "temp " << temp << endl;
+	                sendMessage.append(temp);
+        	        mainMutex.unlock();
+	                //usleep(50000);
+        	        memset(temp,'\0',250);
+
+			// waiting command from interface
+		
 			mainMutex.lock();
 			if(!recvMessage.empty()){
 				mainMutex.unlock();
@@ -82,7 +95,7 @@ int main(int argc,char **argv){
 			
 			latitude = atof(sep[1].c_str());
 			longitude = atof(sep[2].c_str());
-			tempAngle = atof(sep[3].c_str());
+			tempAngle = atoi(sep[3].c_str());
 			servoController(tempAngle,0,-2);
 			cout << " outer server message " << latitude << " " << longitude << " " << tempAngle << endl;
 			while(1){

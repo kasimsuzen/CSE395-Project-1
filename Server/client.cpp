@@ -137,6 +137,7 @@ void writeLoop(socket_ptr sock, string_ptr prompt)
         sendMessage.clear();
 	memset(inputBuf,0,inputSize);
 	mainMutex.unlock();
+	boost::this_thread::sleep( boost::posix_time::millisec(500));
     }
 }
 
