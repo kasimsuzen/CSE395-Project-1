@@ -82,7 +82,7 @@ class WorkerThread : public QThread {
     {
         while(1)
         {
-            usleep(500000);
+            usleep(50000);
             emit progressChanged("");
         }
     }

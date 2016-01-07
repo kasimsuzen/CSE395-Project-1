@@ -111,7 +111,7 @@ void inboundLoop(socket_ptr sock, string_ptr prompt)
 void writeLoop(socket_ptr sock, string_ptr prompt)
 {
     string inputMsg;
-
+    int i = 1;
     for(;;)
     {
         inputMsg = *prompt;
@@ -122,13 +122,20 @@ void writeLoop(socket_ptr sock, string_ptr prompt)
             cerr << "Message sent:" << sendMessage <<":\n";
             inputMsg += sendMessage;
             sock->write_some(buffer(inputMsg, inputSize));
-            sendMessage.clear();
+            //sendMessage.clear();
+            if(i==10)
+            {
+                sendMessage.clear();
+                i=1;
+            }else
+                ++i;
+
         }
         mainMutex.unlock();
         if(inputMsg.find("exit") != string::npos)
             return;
         inputMsg.clear();
-        boost::this_thread::sleep( boost::posix_time::millisec(1));
+        boost::this_thread::sleep( boost::posix_time::millisec(1000));
     }
 }
 

@@ -279,7 +279,7 @@ MainWindow::MainWindow(QWidget *parent) :
     locationArray[55][1].setLocation(40.807655, 29.356444); // //
 
     locationArray[53][0].setLocation(40.807640, 29.356319); // //
-    locationArray[53][1].setLocation(40.807471, 29.356362); // //
+    locationArray[53][1].setLocation(40.807504, 29.356373); // //
 
     locationArray[45][0].setLocation(40.807465, 29.356263); // //
     locationArray[45][1].setLocation(40.807356, 29.356335); // //
@@ -421,7 +421,7 @@ void MainWindow::onProgressChanged(QString info)
                 if(strcmp(longitude,locationArray[i][0].getLongitude())>=0 && strcmp(longitude,locationArray[i][1].getLongitude())<=0)
                 {
                     flag=false;
-                    MainWindow::currentLocation=i+1;
+                    currentLocation = i + 1;
                     if(temp!=currentLocation)
                     {
                         MainWindow::changeBtnColor(temp, (char*)"rgba(255, 255, 255, 0)");
@@ -571,7 +571,7 @@ void MainWindow::on_pathBtn_clicked()
     sscanf(locationArray[nextTarget-1][0].getLatitude(),"%lf",&upLatitude);
     sscanf(locationArray[nextTarget-1][1].getLatitude(),"%lf",&downLatitude);
 
-    sprintf(tempString, "%lf %lf %d",(upLatitude+downLatitude)/2.0,(upLongitude+downLongitude)/2.0, angle);
+    sprintf(tempString, "d %lf %lf %d",(upLatitude+downLatitude)/2.0,(upLongitude+downLongitude)/2.0, angle);
 
     mainMutex.lock();
     sendMessage.clear();

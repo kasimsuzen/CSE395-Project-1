@@ -272,7 +272,7 @@ void MainWindow::on_pathBtn_clicked()
     qDebug() << "SENDING: next target: " << nextTarget << "angle: " << angle;
 
     char tempString[256];
-    sprintf(tempString, "%d %d", nextTarget, angle);
+    sprintf(tempString, "i %d %d", nextTarget, angle);
 
     mainMutex.lock();
     sendMessage.clear();
